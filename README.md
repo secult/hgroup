@@ -5,9 +5,10 @@ Repo of the H group Software Testing class
 
 Namelist:
 
-Felipez Queijo	Jonathan\r\n
-Kennedy van Dam	Jurriaan\n
+Felipez Queijo	Jonathan
 
-Kincel	Pavol\r
+Kennedy van Dam	Jurriaan
+
+Kincel	Pavol
 
 Langlotz	Timon Dominique
