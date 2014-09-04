@@ -49,6 +49,15 @@ removeStr y (x:xs) 	| y == x = xs
 					
 --Excercise 1.17 TODO
 substring :: String -> String -> Bool
-substring (xs) (ys) = prefix (xs) (ys)
-substring (x:xs) (y:ys) | ys == (y:ys) && substring xs ys = True
-						| otherwise = False
+substring [] _ 								 = True
+substring _ []								 = False
+substring (xs) (y:ys) 	| prefix (xs) (y:ys) = True
+						| substring xs ys	 = True
+						| otherwise			 = False
+						
+lengths :: [[a]] -> [Int]
+lengths as = map length as
+
+sumLengths :: [[a]] -> Int
+sumLengths as = sum (lengths as)
+

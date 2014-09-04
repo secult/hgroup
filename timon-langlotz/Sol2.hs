@@ -1,3 +1,4 @@
 module Sol2 where
 
-import GS, TAMO
+import GS
+import TAMO
