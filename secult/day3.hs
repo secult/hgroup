@@ -40,3 +40,10 @@ tuple3 (Tuple2 a b)  = Nothing
 tuple3 (Tuple3 a b c)  = Just c
 tuple3 (Tuple4 a b c d)  = Just c
 tuple3 (SomKonstruktor a)= Nothing
+
+makeTuple :: Tuple a b c d -> Either Char (Either (Char,b) (Either (Char,b,c) (Char,b,c,d)))
+makeTuple (Tuple1 a) = Left a
+makeTuple (Tuple2 a b)  = Right (Left (a,b))
+makeTuple (Tuple3 a b c)  = Right (Right (Left (a,b,c)))
+makeTuple (Tuple4 a b c d)  = Right (Right (Right (a,b,c,d)))
+makeTuple (SomKonstruktor a)= Left a
