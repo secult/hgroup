@@ -33,7 +33,7 @@ unique p xs = length (filter p xs) == 1
 
 -- 2.52 parity: 
 parity :: [Bool] -> Bool 
-parity xs = let thruths = filter id xs 
+parity xs = let truths = filter id xs 
             in (length truths) `mod` 2 == 0 
 
 --exercise 2.53
