@@ -5,10 +5,19 @@ import Day5
 --hmm = foldl (\x y -> x:concatNTimes y (length m)) "a" m
   --    where m=["sa  asfa"]
 
---1.16
+--1.15
+--actually, this is not in the exercise
+badSortString :: String-> String
+badSortString []=[]
+badSortString [a]=[a]
+badSortString xs = let minOne=foldr1 (\x y-> if x<y then x else y) xs
+            in minOne : (badSortString (removeFst minOne xs))
 
-sortString :: String-> String
+--but it does function actually
+sortString :: [String]-> [String]
 sortString []=[]
 sortString [a]=[a]
 sortString xs = let minOne=foldr1 (\x y-> if x<y then x else y) xs
             in minOne : (sortString (removeFst minOne xs))
+
+--1.16
