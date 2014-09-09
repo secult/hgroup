@@ -52,18 +52,30 @@ solution2 =
 
 -- Exercise 5 Implement solution3 (Knights and Knaves)
 john' :: (Islander, Islander) -> Bool
-john' (x,y) = (x,y) == (Knight, Knight)
+john' (x,y) = x == y
 
 bill' :: (Islander, Islander) -> Bool
-bill' (x,y) = (x,y) == (Knave, Knight)
+bill' (x,y) = x /= y
 
 solution4 :: [(Islander, Islander)]
 solution4 = [(x,y) | x <- [Knight, Knave]
                     ,y <- [Knight, Knave]
-                    ,(bill' (x,y) == (x == Knight))
-                     ]
+                    ,(bill' (x,y) == (y == Knight)) && (john'(x,y) == (x == Knight))]
+                    -- bill's can only be true if he himself is a knight, the same for john
+                     
+-- Exercise 7 Implement solution (INCOMPLETE)
 
--- Exercise 7 Implement solution
+-- get all valid permutations of Honest/Liar values (3 liars, 2 honest)
+boolPerms = let valid xs = length (filter id xs) == 2)
+            in filter valid  [[a,b,c,d,e] | a <- [True, False]
+                                           ,b <- [True, False]
+                                           ,c <- [True, False]
+                                           ,d <- [True, False]
+                                           ,e <- [True, False]]
 
+-- Reverse a statement if the boy is lying (need to find a situation where exactly the neg. of 2 statements is True 
+-- and the other three statements are also True
+reverseIfLie :: Bool -> Bool -> Bool
+reverseIfLie lie x = if not lie then x else not x 
 
 
