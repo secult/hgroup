@@ -66,7 +66,7 @@ solution4 = [(x,y) | x <- [Knight, Knave]
 -- Exercise 7 Implement solution (INCOMPLETE)
 
 -- get all valid permutations of Honest/Liar values (3 liars, 2 honest)
-boolPerms = let valid xs = length (filter id xs) == 2)
+boolPerms = let valid xs = length (filter id xs) == 2
             in filter valid  [[a,b,c,d,e] | a <- [True, False]
                                            ,b <- [True, False]
                                            ,c <- [True, False]
