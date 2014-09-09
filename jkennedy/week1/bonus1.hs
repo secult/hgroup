@@ -29,3 +29,10 @@ reverse' xs = foldr (\ x acc -> acc ++ [x]) [] xs
 --exercise 2
 reverseLeft :: [a] -> [a]
 reverseLeft xs = foldl (\ acc x -> x : acc) [] xs
+
+--exercise 3
+-- foldr may work on infinite lists. This is because when folding from the right, the function starts at the end
+-- and may work itself to the start, which means the function will eventually end. When starting from the left
+-- the function can go on infinitily.
+
+--exercise 4
