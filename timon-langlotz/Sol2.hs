@@ -4,7 +4,7 @@ import GS
 import TAMO
 
 -- Exercise 2.13
-test1a = logEquiv1 ((\ True -> not True) (\ False -> not True))
+test1a = logEquiv1 ((\ p -> not p) (\ p -> not p))
 test1b = logEquiv1 (not False) True
 
 --test2 = logEquiv2 id (\ p -> p ==> False) (\ p -> not p)
@@ -15,7 +15,7 @@ unique :: (a -> Bool) -> [a] -> Bool
 unique p []		= False
 unique p (a:as) = oneTrue (map p (a:as)) False
 
-oneTrue :: [Bool] -> Bool -> Bool 
+oneTrue :: [Bool] -> Bool -> Bool
 oneTrue [] b 	| b = True
 				| otherwise = False
 oneTrue (x:xs) True | x = False
