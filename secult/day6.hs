@@ -20,4 +20,15 @@ sortString [a]=[a]
 sortString xs = let minOne=foldr1 (\x y-> if x<y then x else y) xs
             in minOne : (sortString (removeFst minOne xs))
 
---1.16
+--example 1.16
+
+prefix :: String -> String -> Bool
+prefix [] ys = True
+prefix (x:xs) [] = False
+prefix (x:xs) (y:ys) | x == y && (prefix xs ys) = True
+--1.17
+
+substring :: String -> String -> Bool
+substring xs ys = prefix xs ys
+substring xs ys = let (y:ys')= ys in 
+                  (ys==y:ys') && substring xs ys

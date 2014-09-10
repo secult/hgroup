@@ -21,8 +21,8 @@ sortInts []=[]
 sortInts [a]=[a]
 sortInts xs = minimum xs : (sortInts (removeFst (minimum xs) xs))
 --or as i can see
-sortInts xs = (m : (sortInts (removeFst m xs)) )where
-              m=(minimum xs)
+--sortInts xs = (m : (sortInts (removeFst m xs)) )where
+--              m=(minimum xs)
 
 --1.12
 average :: [Int] -> Rational
