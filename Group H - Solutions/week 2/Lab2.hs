@@ -155,8 +155,21 @@ compareNumberIndices (x:xs) ys zs = length (elemIndices x ys) == length (elemInd
             [ isPermutation x | x <- Perms ls ]
 -}
 
-canResolveNonEqualLengths :: Eq a=>Num a=> ([a]->[a]->Bool) ->  Bool
-canResolveNonEqualLengths f = not (f [1] [1,2])
+canResolveNonEqualLengthsP :: Eq a=>Num a=> ([a]->[a]->Bool) ->  Bool
+canResolveNonEqualLengthsP f = not (f [1] [1,2])
+
+canHandleEmptyListsP ::  ([a]->[a]->Bool) ->  Bool
+canHandleEmptyListsP f = f [] []
+
+canHandleSingletonsP ::
+  Eq a => Num a => ([a]->[a]->Bool) ->  Bool
+canHandleSingletonsP f =
+  (f [1] [1]) && not (f [1] [2])
+
+canHandleOneSideEmptyListsP ::  Eq a => Num a =>  ([a]->[a]->Bool) ->  Bool
+canHandleOneSideEmptyListsP f = (not (f [1] [])) && (not (f [] [2]))
+
+
 
 -- It might reduce the amount of posibilities to be tested
 -- You can calculate the total amount of permutations by calculating the factorial of the size of the
@@ -181,7 +194,11 @@ t7 = ([1..4],[5..8], False)
 t8 = (1:[1..4],[1..5], False)
 -- Testcase duplicates, different length, same elements
 t9 = (1:[1..4], [1..4], False)
+tt=[t1,t2,t3,t4,t5,t6,t7,t8,t9]
 
+
+canHandleOurTestDataP :: ([Integer]->[Integer]->Bool) ->  Bool
+canHandleOurTestDataP f = and $ map (\(a,b,c)-> ((f a b) == c )) tt
 -- Exercise 4
 -- time spent : 30 minutes
 perms :: [a] -> [[a]]
@@ -206,7 +223,7 @@ perms2 xs = [ x:ys | x <- xs, ys <- perms2 (delete x xs)]
 -- Exercise 5
 -- time spent : 25 minutes
 isDerangement :: Eq a => [a] -> [a] -> Bool
-isDerangement x y = (length x == length y) && (and $ zipWith (/=) x y)
+isDerangement x y = isPermutation x y && (and $ zipWith (/=) x y)
 
 -- Exercise 6
 -- time spent : 10 minutes
@@ -216,22 +233,42 @@ deran xs = filter (isDerangement xs) $ perms xs
 -- Exercise 7
 
 
+
+
 canHandleEmptyLists ::  ([a]->[a]->Bool) ->  Bool
-canHandleEmptyLists f = f [] [] == True
+canHandleEmptyLists f = f [] []
+
+canHandleSingletons ::  Eq a => Num a => ([a]->[a]->Bool) ->  Bool
+canHandleSingletons f = not (f [1] [1]) && not (f [1] [2])
+
+canHandleOneSideEmptyLists ::   Eq a => Num a =>  ([a]->[a]->Bool) ->  Bool
+canHandleOneSideEmptyLists f = (not (f [1] [])) && (not (f [] [2]))
+
 
 
 --checkDerangement0  = isDerangement []        []                 == True
-checkDerangement1  = isDerangement [1]       [1]                == False
-checkDerangement2  = isDerangement [2]       [1]                == False
-checkDerangement3  = isDerangement [1,2]     [2,1]              == True
-checkDerangement4  = isDerangement [1,2]     [1,3]              == False
-checkDerangement5  = isDerangement [1..10]   (reverse [1..10])  == True
-checkDerangement6  = isDerangement [1..10]   (reverse [1..11])  == False
-checkDerangement7  = isDerangement [1,2,3,4] [3,4,1,2]          == True
-checkDerangement8  = isDerangement [1,2,3,4] [4,2,1,3]          == False
-checkDerangement9  = isDerangement [1,2,3]   [1,2]              == False
-checkDerangement10 = isDerangement []        [1,2]              == False
-checkDerangement11 = isDerangement [1,2,3]   []                 == False
+testData :: [([Integer],[Integer],Bool)]
+testData= [
+    ([1],[1],False),
+    ([2],[1],False),
+    ([1,2],[2,1],True),
+    ([1,2],[1,3],False),
+        ( [1..10] ,  (reverse [1..10]) , True),
+        ( [1..10]  , (reverse [1..11]) ,False),
+        ( [1,2,3,4],[3,4,1,2]    ,True),
+        ( [1,2,3,4],[4,2,1,3]   ,False),
+        ( [1,2,3] ,[1,2]      ,False),
+    ([],        [1,2]  ,       False),
+    ([1,2,3],   []      ,     False)
+    ]
+
+canHandleOurTestData :: ([Integer]->[Integer]->Bool) ->  Bool
+canHandleOurTestData f = and $ map (\(a,b,c)-> ((f a b) == c )) testData
+--time spent 2 hours * 4 people
+
+--isAPermutation ::  ([a]->[a]->Bool) ->  Bool
+--isAPermutation f = isPermutation
+
 
 -- Exercise 8
 generateDerangement :: Eq a => Int -> [a] -> [a]
