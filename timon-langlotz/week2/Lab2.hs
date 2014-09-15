@@ -54,6 +54,7 @@ factorial x | x == 1 = 1
 isDerangement :: Eq a => [a] -> [a] -> Bool
 isDerangement [] [] = True
 isDerangement (x:xs) (y:ys) = x /= y && isDerangement xs ys
+isDerangement _ _ = False
 
 deran :: Eq a => [a] -> [[a]]
 deran as = filter' (perms as) as
