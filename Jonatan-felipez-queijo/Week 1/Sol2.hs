@@ -10,14 +10,15 @@ import TAMO
 -- priority over 'foo'
 
 -- Exercise 2.13 Implement checks for the principles from Theorem 2.12
-theorem212n1  = lequiv (not True) (False)              
+theorem212n1a  = lequiv (not True) (False)             
+--todo 
 theorem212n2  = lequiv (\p -> p ==> False) (\p -> not p)
-theorem212n3a = lequiv (\p -> p || True) (\p -> True)
-theorem212n3b = lequiv (\p -> p && False) (\p -> False)
+theorem212n3a = lequiv (\p -> p || True) (\_ -> True)
+theorem212n3b = lequiv (\p -> p && False) (\_ -> False)
 theorem212n4a = lequiv (\p -> p || False) id
 theorem212n4b = lequiv (\p -> p && True) id
-theorem212n5  = lequiv (\p -> p || not p) (\p -> True)
-theorem212n6  = lequiv (\p -> p && not p) (\p -> False)
+theorem212n5  = lequiv (\p -> p || not p) (\_ -> True)
+theorem212n6  = lequiv (\p -> p && not p) (\_ -> False)
 
 --Exercise 2.15 Write Haskell definitions of contraiction tests for prop. func. with 1,2,3 vars
 -- I know parentheses are unnecessary, but I find it's more clear 
@@ -47,9 +48,8 @@ xor (x:xs) | x         = and $ map not xs
 
 -- 2.52 parity: 
 parity :: [Bool] -> Bool 
-parity [] = True
-parity xs = (length truths) `mod` 2 == 1 
-        where truths = filter (== True) xs
+parity xs = let truths = filter id xs 
+            in (length truths) `mod` 2 == 0 
         
 -- 2.53 evenNR: true if even number of xs have property p
 evenNR :: (a -> Bool) -> [a] -> Bool
