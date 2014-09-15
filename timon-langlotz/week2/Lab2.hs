@@ -6,7 +6,7 @@ import System.Random
 -- 1
 triangle :: Integer -> Integer -> Integer -> Shape
 triangle x y z 	| x <= 0 || y <= 0 || z <= 0	= NoTriangle -- length < 0
-				| x + y < z || x + z < y || y + z < x = NoTriangle -- triangle inequality
+				| x + y <= z || x + z <= y || y + z <= x = NoTriangle -- triangle inequality
 				| x^2 + y^2 == z^2 				= Rectangular
 				| x == y && y == z 				= Equilateral
 				| x == y || y == z || x == z 	= Isosceles
