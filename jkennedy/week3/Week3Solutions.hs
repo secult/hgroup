@@ -30,9 +30,9 @@ equiv f g = all (\ v -> eval v (equivalent)) (allVals equivalent)
 cnf :: Form -> Form
 cnf (Prop x) = Prop x
 cnf (Cnj fs) = Cnj (map cnf fs)
---cnf (Dsj fs) = 
+cnf (Dsj fs) = dist (map cnf fs)
 
-dist :: Form -> Form -> Form
-dist (Cnj fs) g = Cnj (map dist fs g)
-dist f (Cnj gs) = Cnj (map dist fs g)
-dist f g = Dsj [f, g]
+dist :: [Form] -> Form
+dist (Cnj(f):Dsj(fs)) = Cnj (map dist--blabla)
+dist (Cnj(f):g:fs) = Dsj (map dist f:g:fs
+

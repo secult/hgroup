@@ -27,4 +27,12 @@ equiv f g = all (\ v -> eval v (equivalent)) (allVals equivalent)
 --I checked the contradiction and tautology functions, by inputting the formulas used in the workshop. For the other functions I used some formules devised by myself and some found on the internet.
 
 --exercise 2
+cnf :: Form -> Form
+cnf (Prop x) = Prop x
+cnf (Cnj fs) = Cnj (map cnf fs)
+--cnf (Dsj fs) = 
 
+dist :: Form -> Form -> Form
+dist (Cnj fs) g = Cnj (map dist fs g)
+dist f (Cnj gs) = Cnj (map dist fs g)
+dist f g = Dsj [f, g]
