@@ -17,30 +17,24 @@ falsifiable f = any (\ v -> not $ eval v f) (allVals f)
 
 -- logical entailment time: 20 minutes
 entails :: Form -> Form -> Bool
-entails f1 f2 | propNames f1 /= propNames f2 = error "Incomparable formulas"
-              | otherwise                    = tautology $ Impl f1 f2                           
+entails f1 f2 = tautology $ Impl f1 f2 
+                                         
      
 -- logical equivalence time: 2 minutes
 equiv :: Form -> Form -> Bool
-equiv f1 f2 | propNames f1 /= propNames f2  = error "Incomparable formulas"
-            | null $ propNames f1           = True -- If both formulas have no variables, then they are equivalent as well
-            | otherwise                     = tautology $ Equiv f1 f2
+equiv f1 f2  = tautology $ Equiv f1 f2                                                 
 
--- Exercise 3: total: 9:30 hours
+-- Exercise 2: total: 9:30 hours
+toNNF :: Form -> Form
+toNNF = nnf.arrowfree
 
-toCNF :: Form -> Form
-toCNF = simpl.cnf.nnf.arrowfree
-
-simpl :: Form -> Form
-simpl (Cnj fs) = flatten $ Cnj fs
-simpl (Dsj fs) = Dsj fs
-simpl f        = f
+toCNF = cnf.toNNF
 
 -- Pre: parameter is in NNF and does not contain any operators except for and, or and negation
 -- Post: the result is in CNF
 cnf :: Form -> Form
 cnf (Cnj fs) = Cnj (map cnf fs)
-cnf (Dsj []) = Cnj []
+cnf (Dsj []) = Dsj []
 cnf (Dsj fs) = foldDist $ Dsj (map cnf fs)
 cnf f        = f
 
@@ -54,17 +48,24 @@ foldDist _ = error "Precondition failed: Argument is not a distribution"
 
 -- distribute two Forms over each other
 -- Pre: the parameters are in CNF
--- Post: the two parameters folded together in CNF
+-- Post: the two parameters folded together in an equivalent CNF formula
 dist :: Form -> Form -> Form
-dist p (Cnj []) = p 
-dist (Cnj []) p = p 
-dist p (Cnj xs) = Cnj (map (dist p) xs)
-dist (Cnj xs) p = Cnj (map (dist p) xs)
-dist p p2       = Dsj (p:[p2])       
+dist p (Cnj []) = Cnj [] -- Cnj [] is a tautology, Dsj[... Cnj[] ...] = tautology, so don't merge, keep the Cnj []    
+dist (Cnj []) p = Cnj [] -- see above
+dist p (Cnj xs) = Cnj (map (dist p) xs) -- distribute p over the list xs in the conjunction        
+dist (Cnj xs) p = Cnj (map (dist p) xs) -- see above
+dist p p2       = Dsj (p:[p2])          -- Merge disj
+
+------------------------------------------------------------------ Simplify: bugged
+
+tosimpleCNF = simpl.toCNF
+
+simpl :: Form -> Form
+simpl (Cnj fs) = flatten $ Cnj fs
+simpl (Dsj fs) = flatten $ Dsj fs
+simpl f        = f
 
 -- flatten a list conjunctions and disjunctions recursively
--- Pre: Form is arrowfree and in NNF
--- Post: A flattened Form where nested conjunctions and disjunctions have been combined
 flatten :: Form -> Form
 flatten (Cnj x) = Cnj $ cnjList ++ dsjList ++ rest
                where 
@@ -80,8 +81,6 @@ flatten (Dsj x) = Dsj $ dsjList ++ cnjList ++ rest
 flatten f = f
 
 -- build up a flattened conjunction out of a conjunction or a disjunction out of a disjunction
--- Pre: Form has to be a conjunction or a disjunction
--- Post: Result is either a recursively flattened conunction or disjunction
 flat :: Form -> Form
 flat (Cnj xs) = foldr (\a (Cnj b) -> Cnj $ if isCnj a 
                                            then getFormLst (flatten a) ++ b 
@@ -89,10 +88,9 @@ flat (Cnj xs) = foldr (\a (Cnj b) -> Cnj $ if isCnj a
 
 flat (Dsj xs) = foldr (\a (Dsj b) -> Dsj $ if isDsj a 
                                            then getFormLst (flatten a) ++ b 
-                                           else (flatten a) : b) (Dsj []) xs
-
+                                           else (flatten a) : b) (Dsj []) xs                                   
+                                           
 -- Get the list of a conjunction or a disjunction
--- Pre: argument has to be a conjunction or a disjunction                                           
 getFormLst :: Form -> [Form]
 getFormLst (Cnj xs) = xs
 getFormLst (Dsj xs) = xs
@@ -106,91 +104,52 @@ isDsj :: Form -> Bool
 isDsj (Dsj _) = True
 isDsj _       = False
 
-
 ---------------------------------------------------------------- Test cases
 
--- Failure on:
--- (-+(-8 +(5 8 13 11 16) -11 -12 4)<=>(18<=>+(*() (9<=>18) (10<=>16))))
--- (*(+((15<=>2)) (5<=>+(6 9 8 21 10)))==>(*()<=>+((19==>7) 9 11)))
+--start 1 : 17:09 - stop1: 18:30, start2 12:30 stop2: 14:30, start3 15:15, stop3: 16:40                
 
---start 1 : 17:09
+-- check if the functions returned by toCNF are indeed in CNF
+runToCNFTests = do 
+                originals1 <- getRndFs 2 10
+                mapM_ putStrLn $ map show originals1
+                let cnfs = map toCNF originals1
+                putStrLn ""
+                putStrLn ""
+                putStrLn ""
+                mapM_ (putStrLn.show ) cnfs
 
-testcases = [   Dsj [], 
-                Impl (Prop 1) (Prop 2), 
-                Neg (Neg $ Prop 3), 
-                Dsj [Cnj []], 
-                Dsj [Dsj[Prop 2]],
-                Cnj [Dsj[Prop 19, Prop 2, Prop 8, Prop 14, Prop 6], Equiv (Prop 14) (Prop 13), Dsj[Prop 5,Prop 5,Prop 2], Dsj[Prop 20], Dsj[Neg $ Prop 10]]
-                ]
-        
-testresults = zipWith (equiv) originals cnfs
-            where
-                originals = testcases
-                cnfs = map toCNF testcases 
-
-
+-- check if the functions returned by toCNF are equivalent to the original function                 
 runTests = do
-            originals <- getRndFs 4 5
-            putStrLn "Originals:"
-            mapM_ putStrLn $ map show originals
-            let cnfs = map toCNF originals
-            putStrLn ""
-            putStrLn "Originals in CNF:"
-            mapM_ putStrLn $ map (\a -> show a ++ ['\n']) cnfs
+            originals1 <- getRndFs 1 100
+            putStrLn "Originals1:"
+            mapM_ putStrLn $ map show originals1
+            let cnfs = map toCNF originals1
+            --putStrLn ""
+            --putStrLn "Originals in CNF:"
+            --mapM_ putStrLn $ map (\a -> show a ++ ['\n']) cnfs
             putStrLn "testing equivalence with originals, this may take a while..."
-            let result = zipWith (equiv) originals cnfs
-            return result --mapM_ (putStrLn.show) testfs
-                
-t2 = Cnj (map Prop [2..10])    
-
-testRndFs :: IO [Form]
-testRndFs = do 
-                x <- getRndFs 2 4
-                return x  
+            let result1 = zipWith (equiv) originals1 cnfs
             
+            originals2 <- getRndFs 2 50
+            putStrLn "Originals2:"
+            mapM_ putStrLn $ map show originals2
+            let cnfs = map toCNF originals2
+            --putStrLn ""
+            --putStrLn "Originals in CNF:"
+            --mapM_ putStrLn $ map (\a -> show a ++ ['\n']) cnfs
+            putStrLn "testing equivalence with originals, this may take a while..."
+            let result2 = zipWith (equiv) originals2 cnfs
             
-            
-            
-            
-            
-19
-(--(15<=>1)<=>-*(-15 -8 (15<=>21) +(3 8 16)))
--+(((21==>14)<=>*(10)) 6)
-
-(-
-        +(
-            -8 
-            +(5 8 13 11 16) 
-            -11 
-            -12 
-             4
-         )
-    <=>
-        (
-            18
-          <=>
-            +(
-              *() 
-              (
-                 9 
-               <=>
-                 18
-              ) 
-              (
-                  10
-                <=>
-                  16
-              )
-            )
-        )
-
-)
-
-Neg Dsj [Neg (Prop 8), Cnj $ map Prop [5, 8, 13, 11, 16], Neg
-
-
-
-(*(+((15<=>2)) (5<=>+(6 9 8 21 10)))==>(*()<=>+((19==>7) 9 11)))            
+            originals3 <- getRndFs 3 10
+            putStrLn "Originals3:"
+            mapM_ putStrLn $ map show originals3
+            let cnfs = map toCNF originals3
+            --putStrLn ""
+            --putStrLn "Originals3 in CNF:"
+            --mapM_ putStrLn $ map (\a -> show a ++ ['\n']) cnfs
+            putStrLn "testing equivalence with originals, this may take a while..."
+            let result3 = zipWith (equiv) originals3 cnfs
+            return (result1,result2,result3) 
             
             
             
