@@ -42,6 +42,8 @@ main = hspec $ do
       evaluate (isEven 0) `shouldThrow` anyErrorCall
 
 
+--exercise 2- time spent: few hours
+
 --exercise 3
 
 randomSetGenerator :: Int -> Set Int ->IO (Set Int)
@@ -50,4 +52,19 @@ randomSetGenerator x (Set s) = do
                                 v <- getStdRandom( randomR (0,2^31))
                                 set <- randomSetGenerator (x-1) (Set (v:s))
                                 return set
+{-
+ok you have the point, how after i made the test in quickcheck i see
+that i should make a List generator and make set from it afterwards, and check
+not the generator, but the precondition(list) and
+ postcondition(ordered list without duplicates)
+-}
+
+
 --time spent 1h45min
+
+--invariant- if the set is a ordered list without duplicates
+setIsWithoutDuplicatesAndOrdered :: [Int] -> Bool
+setIsWithoutDuplicatesAndOrdered x = (\(Set s) -> s == (sort.nub $x)) (list2set x)
+
+runTest2 = quickCheck setIsWithoutDuplicatesAndOrdered
+--time spent 20m
