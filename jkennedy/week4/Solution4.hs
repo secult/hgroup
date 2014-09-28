@@ -7,6 +7,7 @@ import SetOrd
 import System.Random
 import Data.List
 import Test.QuickCheck
+import Data.Functor
 
 --exercise 3
 getRandomSets :: IO()
@@ -28,5 +29,16 @@ generateRandomSet n gen = list : generateRandomSet (n - 1) newGen
 		   listSize = fst(randomR (0,20) (gen) :: (Int, StdGen))
 
 --quickcheck
-instance Arbitrary (Set a) where
-	arbitrary = list2set $ choose (0, 100)
+-- instance Arbitrary (Set a) where
+	-- arbitrary = do 
+				-- x <- suchThat (arbitrary :: Gen [a]) (not . null)
+				-- return (Set x)
+--jonatans solution, since I suck...
+instance (Arbitrary a, Ord a) => Arbitrary (Set a) where
+    arbitrary = sized $ \n ->
+        do k <- choose (0,n)
+           list2set <$> sequence [arbitrary | _ <- [1..k] ]
+	
+--tests
+noDuplicates :: Set Int -> Bool
+noDuplicates (Set x) = length(nub x) == length x
