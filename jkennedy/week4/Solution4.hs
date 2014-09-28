@@ -59,14 +59,14 @@ setDifference :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
 setDifference (Set xs) (Set ys) = list2set $ [x | x <- xs, not $ elem x ys]
 
 --tests
-intersectProperty :: (Eq a, Ord a) => (Set a) -> (Set a) -> Bool
+intersectProperty :: (Set Int) -> (Set Int) -> Bool
 intersectProperty x y = subSet intersect x && subSet intersect y
 						where intersect = setIntersection x y
 						
-unionProperty :: (Eq a, Ord a) => (Set a) -> (Set a) -> Bool
+unionProperty :: (Set Int) -> (Set Int) -> Bool
 unionProperty x y  = subSet x union && subSet y union
 					 where union = setUnion x y
 					 
-differenceProperty :: (Eq a, Ord a) => (Set a) -> (Set a) -> Bool
+differenceProperty :: (Set Int) -> (Set Int) -> Bool
 differenceProperty x y  = subSet difference $ setUnion x y
 					 where difference = setDifference x y
