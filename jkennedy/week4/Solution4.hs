@@ -42,3 +42,31 @@ instance (Arbitrary a, Ord a) => Arbitrary (Set a) where
 --tests
 noDuplicates :: Set Int -> Bool
 noDuplicates (Set x) = length(nub x) == length x
+
+isOrdered :: Set Int -> Bool
+isOrdered (Set x) = x == sort x
+
+--exercise 4
+setIntersection :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
+setIntersection (Set []) _ = Set []
+setIntersection _ (Set []) = Set []
+setIntersection (Set xs) (Set ys) = list2set $ [x | x <- xs, elem x ys]
+
+setUnion :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
+setUnion (Set xs) (Set ys) = list2set $ xs ++ ys
+
+setDifference :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
+setDifference (Set xs) (Set ys) = list2set $ [x | x <- xs, not $ elem x ys]
+
+--tests
+intersectProperty :: (Eq a, Ord a) => (Set a) -> (Set a) -> Bool
+intersectProperty x y = subSet intersect x && subSet intersect y
+						where intersect = setIntersection x y
+						
+unionProperty :: (Eq a, Ord a) => (Set a) -> (Set a) -> Bool
+unionProperty x y  = subSet x union && subSet y union
+					 where union = setUnion x y
+					 
+differenceProperty :: (Eq a, Ord a) => (Set a) -> (Set a) -> Bool
+differenceProperty x y  = subSet difference $ setUnion x y
+					 where difference = setDifference x y
