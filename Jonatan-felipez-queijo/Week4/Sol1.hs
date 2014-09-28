@@ -78,37 +78,85 @@ propInsert (Set a) = (foldr insertSet (Set a) a) == (Set a)
 --------------------------------------------------------------------------------------------------------------}      
 
 setIntersection :: Ord a => Set a -> Set a -> Set a
-setIntersection (Set x) (Set y) = setUnion ycontrib xcontrib
-                           where 
-                              ycontrib = foldr (\a b -> if a `elem` x then insertSet a b else b) emptySet y
-                              xcontrib = foldr (\a b -> if a `elem` y then insertSet a b else b) emptySet x                            
+setIntersection (Set a) (Set b) = list2set $ intersect a b 
+
+--setUnion ycontrib xcontrib
+                           --where 
+                              --ycontrib = foldr (\a b -> if a `elem` x then insertSet a b else b) emptySet y
+                              --xcontrib = foldr (\a b -> if a `elem` y then insertSet a b else b) emptySet x                            
                               
 setUnion :: Ord a => Set a -> Set a -> Set a
-setUnion (Set a) b = foldr insertSet b a
+setUnion (Set a)(Set b) = list2set $ union a b--foldr insertSet b a
 
 setDifference :: Ord a => Set a -> Set a -> Set a
-setDifference (Set x) (Set y) = setUnion ycontrib xcontrib
-                            where 
-                              ycontrib = foldr (\a b -> if a `elem` x then b else insertSet a b) emptySet y
-                              xcontrib = foldr (\a b -> if a `elem` y then b else insertSet a b) emptySet x                            
-                              
-prop_Union :: Ord a => Set a -> Set a -> Bool
-prop_Union a b = undefined --forall (`inSet` union) b && all (`inSet` union) a                              
-               --where union = setUnion a b
+setDifference (Set x) (Set y) = list2set $ x \\ y 
+
+
+                            -- setUnion ycontrib xcontrib
+                            --where 
+                              --ycontrib = foldr (\a b -> if a `elem` x then b else insertSet a b) emptySet y
+                              --xcontrib = foldr (\a b -> if a `elem` y then b else insertSet a b) emptySet x                            
+
+-- Union properties                             
+propUnion1 :: Set Int -> Set Int -> Bool
+propUnion1 a b = forall a (`inSet` union) && forall b (`inSet` union)                              
+               where union = setUnion a b
+
+propUnion2 :: Set Int -> Set Int -> Bool
+propUnion2 a b = forall (setUnion a b) (\x -> x `inSet` a || x `inSet` b)          
                
-               
+-- Intersection properties           
+propIntersection1 :: Set Int -> Set Int -> Bool
+propIntersection1 a b = forall res (`inSet` a) && forall res (`inSet` b) 
+                    where res = setIntersection a b     
+                    
+-- Dfference properties
+propDifference1 :: Set Int -> Set Int -> Bool
+propDifference1 a b = p1 && p2
+                    where 
+                        res = setDifference a b
+                        p1 = forall res (\x ->if x `inSet` a 
+                                              then not(x `inSet` b) 
+                                              else not(x `inSet` a) )
+                        p2 = forall res (\x ->if x `inSet` b 
+                                              then not(x `inSet` a) 
+                                              else not(x `inSet` b))
 -- Helpers
---forall :: Set a -> (a -> Bool) -> Bool 
---forall (Set a) f = all f a
+forall :: Set a -> (a -> Bool) -> Bool 
+forall (Set a) f = all f a
                               
-
-
 {-------------------------------------------------------------------------------------------------------------
 
     Exercise 5: Transitive closure
 
 --------------------------------------------------------------------------------------------------------------}
 
+type Rel a = [(a,a)]
+
+infixr 5 @@
+
+(@@) :: Eq a => Rel a -> Rel a -> Rel a
+r @@ s =
+    nub [(x,y) | (x,y) <- r, (w,z) <- s, y == w]
+       
+--trClos :: Ord a => Rel a -> Rel a
+--trClos a = tr  
+ --       where connectors = a@@a
+        
+pairsThatBeginWith :: Ord a => a -> Rel a -> Rel a
+pairsThatBeginWith a = filter (\z -> fst z == a )
+   
+        
+--expand :: Ord a => Rel a -> Rel (a,a)
+--expand orig = [((a,b),(w,z)) | (a,b) <- orig@@orig, (w,z) <- orig, b == w] 
+
+--clos1 :: Eq a => Rel a -> Rel a -> Rel a
+--clos1 a b = undefined --[(x,y)| (x,y) <- a, (w,z) <- b, (q,p) <-    ] 
+         --where neighbours = a @@ b
+
+trClos :: Ord a => Rel a -> [a,(Rel a)]
+trClos a = map (\a -> ) (a@@a)
+        where conn = a@@a
 {-------------------------------------------------------------------------------------------------------------
 
     Exercise 6: Hspec of transitive closure function
@@ -130,7 +178,7 @@ prop_Union a b = undefined --forall (`inSet` union) b && all (`inSet` union) a
     - it is a function that gets a function and a float as an argument
     - it checks if the float and the function applied on the float is the same result
         - If this is the case, then the guess is good enough
-        - otherwise recurse 
+        - otherwise apply the function to the float again.
     
     basically the function recurses until the recursion doesn't find a new value (fix-point finder)
     
