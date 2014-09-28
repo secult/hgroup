@@ -29,11 +29,10 @@ cnf :: Form -> Form
 cnf (Prop f) = Prop f
 cnf (Neg f)  = Neg f
 cnf (Cnj fs) = Cnj (map cnf fs)
-cnf (Dsj (f:fs)) = dist f $ head (map cnf fs)
-cnf f = f
+cnf (Dsj (f:g:hs)) = dist f g
 
 dist :: Form -> Form -> Form
-dist (Cnj fs) g = foldr (\f x -> Cnj [x,(dist f g)]) form5 fs
-dist f (Cnj gs) = foldr (\g x -> Cnj [x,(dist f g)]) form5 gs
+dist (Cnj fs) g = foldl1 (\f x -> Cnj [x,(dist f g)]) fs
+dist f (Cnj gs) = foldl1 (\g x -> Cnj [x,(dist f g)]) gs
 dist f g        = Dsj [f,g]
 
