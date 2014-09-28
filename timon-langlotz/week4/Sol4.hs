@@ -1,15 +1,25 @@
 module Sol4 where
 
-
+import Data.List
 import SetOrd
 import System.Random
 import Test.QuickCheck
 
+-- creates a Set from range (lo,hi) from a list with x elements
+createSet :: (Int,Int) -> Int -> IO (Set Int)
+createSet (lo,hi) size = do
+             seed  <- newStdGen
+             let rs = randomlist (lo,hi) size seed
+             return $ list2set rs            
+ 
+randomlist :: (Int,Int) -> Int -> StdGen -> [Int]
+randomlist (lo,hi) n = take n . unfoldr (Just . randomR (lo,hi))
 
-createSet :: Int -> RandomGen -> Set Int
-createSet i gen = genAndIns emptySet i gen
+testOrderedAndUnique :: Set Int -> Bool
+testOrderedAndUnique (Set [])     = True
+testOrderedAndUnique (Set (x:[])) = True
+testOrderedAndUnique (Set (x:xs)) = x < (head xs) && testOrderedAndUnique (Set (xs))
 
-genAndIns :: Set Int -> Int -> RandomGen -> Set Int
-genAndIns set i gen | i < 1     = set
-                    | otherwise = genAndIns (insertSet rndNum set) (i-1)
-                        where rndNum = --next from gen!
+instance Arbitrary (Set Int) where 
+    arbitrary = oneof [return 0, return 1]
+

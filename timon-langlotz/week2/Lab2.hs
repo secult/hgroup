@@ -28,7 +28,15 @@ compareNumberIndices (x:xs) ys zs = length (elemIndices x ys) == length (elemInd
 
 
 -- 3
-
+t1 = ([],[],True)
+--t2 = ([],[1],False)
+--t3 = ([1],[],False)
+t4 = ([1],[0],False)
+t5 = ([0],[0],True)
+t6 = ([1,2,3],[2,3,1],True)
+t7 = ([1,2],[2,3],False)
+t8 = ([1,2,3],[1,2,4],False)
+t9 = ([1,1,2],[2,1,1],True)
 
 -- 4
 perms2 :: [a] -> [[a]]
@@ -63,3 +71,19 @@ filter' :: Eq a => [[a]] -> [a] -> [[a]]
 filter' [] 	   ys 							= []
 filter' (x:xs) ys 	| isDerangement x ys 	= x : (filter' xs ys)
 					| otherwise 			= filter' xs ys
+                    
+-- 8
+arbitraryDerangement :: [Int] -> IO ()
+arbitraryDerangement xs = do
+                g <- newStdGen
+                let s = fst $ randomR (0,length xs) g
+                let (a,b) = splitAt s xs
+                print (b ++ a)
+                
+-- 9
+numDeran :: Int -> Int
+numDeran x | x <= 1 = 0
+           | x == 2 = 1
+           | otherwise = (x-1)*(numDeran (x-1) + numDeran (x-2))
+
+
