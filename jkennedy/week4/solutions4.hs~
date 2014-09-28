@@ -1,0 +1,4 @@
+--exercise 2
+import Test.Hspec
+import Test.QuickCheck
+import Control.Exception (evaluate)
