@@ -52,13 +52,7 @@ randomSetGenerator x (Set s) = do
                                 v <- getStdRandom( randomR (0,2^31))
                                 set <- randomSetGenerator (x-1) (Set (v:s))
                                 return set
-{-
-ok you have the point, how after i made the test in quickcheck i see
-that i should make a List generator and make set from it afterwards, and check
-not the generator, but the precondition(list) and
- postcondition(ordered list without duplicates)
--}
-
+--great, but not usable
 
 --time spent 1h45min
 
@@ -68,3 +62,20 @@ setIsWithoutDuplicatesAndOrdered x = (\(Set s) -> s == (sort.nub $x)) (list2set 
 
 runTest2 = quickCheck setIsWithoutDuplicatesAndOrdered
 --time spent 20m
+
+--exercise 4
+setUnion :: Set Int-> Set Int-> Set Int
+setUnion  (Set x) (Set y) =list2set (x ++ y)
+
+sI :: Set Int-> Set Int-> Set Int
+sI (Set x) (Set y) = list2set (filter (\q-> elem q y) x)
+
+setDifference :: Set Int-> Set Int-> Set Int
+setDifference (Set x) (Set y) = list2set $ (filter (\q-> not (elem q y)) x)++(filter (\q-> not (elem q x)) y)
+-- 30 minutes
+--myTestU :: IO ()
+--myTestU =do map (\x y -> setUnion (randomSetGenerator x) (randomSetGenerator (100-x))) [0..100]
+-- hour
+
+
+---runTest quickCheck setIntersection
