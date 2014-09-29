@@ -2,11 +2,13 @@ module Solution4
 
 where
 
+import Data.Functor
+import Data.List
 import SetOrd
 import System.Random
-import Data.List
+import Test.Hspec
 import Test.QuickCheck
-import Data.Functor
+
 -- exercise 1
 -- make something up
 
@@ -102,3 +104,40 @@ differenceProperty x y  = subSet difference $ setUnion x y
 					 where difference = setDifference x y
                      
 -- exercise 5
+-- time spent: 20 minutes
+type Rel a = [(a,a)]
+
+infixr 5 @@
+
+(@@) :: Eq a => Rel a -> Rel a -> Rel a
+r @@ s = nub [ (x,z) | (x,y) <- r, (w,z) <- s, y == w ]
+
+trClos :: Ord a => Rel a -> Rel a
+trClos r | r == nr   = sort r
+         | otherwise = sort (nub (nr ++ trClos nr))
+            where nr = nub (r ++ (r @@ r))
+
+-- exercise 6
+-- time spent: 20 minutes
+main :: IO ()
+main = hspec $ do 
+    describe "trClos" $ do
+        it "returns the transitive closure of the given relation" $
+            trClos [(1,2),(2,3),(3,4)] `shouldBe` [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
+        it "returns the identity if the given relation has only one element" $
+            trClos [(1,2)] `shouldBe` [(1,2)]
+        it "returns an empty relation if the given relation was empty" $
+            trClos ([] :: Rel Int) `shouldBe` ([] :: Rel Int)
+        it "returns a relation without duplicates if there are any" $
+            trClos [(-7,7),(-7,7)] `shouldBe` [(-7,7)]
+            
+-- exercise 7
+test_trClos xs = testLength xs && testElem xs
+
+-- the length of the transitive closure of a relation should be 
+-- at least the same size as the original relation.
+testLength xs = length (trClos xs) >= length (nub xs)
+
+-- checks whether the original relation is still included in the
+-- transitive closure of the relation.
+testElem xs = and (map (\x -> x `elem` (trClos xs)) xs)

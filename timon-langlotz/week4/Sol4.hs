@@ -53,6 +53,7 @@ differenceSet (Set xs) (Set ys) = unionSet (Set (filter (\x -> x `notElem` xs) y
 operationTest xs ys = unionSet xs ys == unionSet (differenceSet xs ys) (intersectSet xs ys)
 
 -- Exercise 5
+-- time spent: 20 minutes
 type Rel a = [(a,a)]
 
 infixr 5 @@
@@ -74,7 +75,7 @@ main = hspec $ do
         it "returns the identity if the given relation has only one element" $
             trClos [(1,2)] `shouldBe` [(1,2)]
         it "returns an empty relation if the given relation was empty" $
-            trClos [] `shouldBe` []
+            trClos ([] :: Rel Int) `shouldBe` ([] :: Rel Int)
 
 -- Exercise 7
 -- False for second check?! :(
