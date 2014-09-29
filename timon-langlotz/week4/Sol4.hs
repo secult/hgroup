@@ -23,7 +23,7 @@ testSet xs = testOrderedAndUnique xs && testInsert xs
 
 testOrderedAndUnique :: Set Int -> Bool
 testOrderedAndUnique (Set [])     = True
-testOrderedAndUnique (Set (x:[])) = True
+testOrderedAndUnique (Set [x])    = True
 testOrderedAndUnique (Set (x:xs)) = x < (head xs) && testOrderedAndUnique (Set (xs))
 
 testInsert :: Set Int -> Bool
@@ -62,7 +62,7 @@ r @@ s = nub [ (x,z) | (x,y) <- r, (w,z) <- s, y == w ]
 
 trClos :: Ord a => Rel a -> Rel a
 trClos r | r == nr   = r
-         | otherwise = nub (nr ++ trClos nr)
+         | otherwise = sort (nub (nr ++ trClos nr))
             where nr = nub (r ++ (r @@ r))
 
 -- Exercise 6
@@ -73,14 +73,13 @@ main = hspec $ do
             trClos [(1,2),(2,3),(3,4)] `shouldBe` [(1,2),(2,3),(3,4),(1,3),(2,4),(1,4)]
         it "returns the identity if the given relation has only one element" $
             trClos [(1,2)] `shouldBe` [(1,2)]
---        it "returns an empty relation if the given relation was empty" $
---            trClos [] `shouldBe` []
--- does not work! :(
+        it "returns an empty relation if the given relation was empty" $
+            trClos [] `shouldBe` []
 
 -- Exercise 7
 -- False for second check?! :(
-test_trClos xs = length (trClos xs) >= length xs &&
-                    and (map (\x -> x `elem` xs) (trClos xs)) &&
+test_trClos xs = length (trClos xs) >= length (nub xs) &&
+                    and (map (\x -> x `elem` (trClos xs)) xs)
                     
 
 -- Exercise 8
