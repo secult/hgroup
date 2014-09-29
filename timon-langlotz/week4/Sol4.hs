@@ -82,6 +82,9 @@ main = hspec $ do
 test_trClos xs = length (trClos xs) >= length (nub xs) &&
                     and (map (\x -> x `elem` (trClos xs)) xs)
                     
+testTrans :: Rel Int -> Bool
+testTrans xs =  and $ ([(a,d) `elem` xs | (a,b) <- xs, (c,d) <- xs, b == c, (a,b) `elem` xs, (c,d) `elem` xs])
+                    
 
 -- Exercise 8
 -- Babylonian method

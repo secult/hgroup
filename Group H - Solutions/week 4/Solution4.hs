@@ -153,8 +153,10 @@ testElem xs = and (map (\x -> x `elem` (trClos xs)) xs)
 
 -- checks for each pair of element of the pattern (a,b) (b,c) 
 -- whether the element (a,c) in included in the relation
--- testTrans :: Set Int -> Bool
--- testTrans xs = [(a,d) | (a,b) <- r, (c,d) <- s, b == c, subSet r xs, subSet s xs]
+-- this function has to be called on a transitive closure and will return true,
+-- iff this relation is a transitive closure.
+testTrans :: Rel Int -> Bool
+testTrans xs =  and $ ([(a,d) `elem` xs | (a,b) <- xs, (c,d) <- xs, b == c, (a,b) `elem` xs, (c,d) `elem` xs])
 
 -- exercise 8
 -- Babylonian method
