@@ -12,7 +12,6 @@ import Test.QuickCheck
 -- exercise 1
 -- make something up
 
-
 -- exercise 2
 -- 45 minutes
 
@@ -40,8 +39,8 @@ interactiveRandomSetGenerator = do
                                     i4 <- getLine
                                     if i4 == "n" 
                                     then interactiveRandomSetGenerator
-                                    else return ()                             
-
+                                    else return ()                                            
+                                                          
 -- From scratch:                                
 getRndSetList :: Int -> (Int, Int) -> StdGen -> ([Set Int], StdGen)
 getRndSetList 0 (_,_)   g = ([],g)
@@ -61,7 +60,7 @@ randomList n gen = take n $ unfoldr (Just . randomR(1, maxBound)) gen
 instance (Arbitrary a, Ord a) => Arbitrary (Set a) where
     arbitrary = sized $ \n ->
         do k <- choose (0,n)
-           list2set <$> sequence [arbitrary | _ <- [1..k] ]
+           list2set <$> sequence [arbitrary | _ <- [1..k] ] -- <$> maps a function over a functor 
     
 -- check for duplicates
 propNoDubs :: Set Int -> Bool -- help 
@@ -75,11 +74,8 @@ propSorted (Set a) = a == sort a
 propInsert :: Set Int -> Bool
 propInsert (Set a) = (foldr insertSet (Set a) a) == (Set a)
 
-
 -- exercise 4
 setIntersection :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
-setIntersection (Set []) _ = Set []
-setIntersection _ (Set []) = Set []
 setIntersection (Set xs) (Set ys) = list2set $ [x | x <- xs, elem x ys]
 
 setUnion :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
@@ -106,9 +102,56 @@ unionProperty x y  = subSet x union && subSet y union
 differenceProperty :: (Set Int) -> (Set Int) -> Bool
 differenceProperty x y  = subSet difference $ setUnion x y
 					 where difference = setDifference x y
-                    
--- todo : jonatan testreport! :) (felipez-quark)
 
+
+--------------------------------------------------------------------------------
+
+-- Print the testcase if the result was false
+printFalseTest :: Show a => ((Set a, Set a), Bool) -> IO ()
+printFalseTest (a,False) = putStrLn $ "false: " ++ (show a)
+printFalseTest _         = return () 
+
+-- return the testcase and the result of the test
+doTest2 :: (a -> a -> Bool) -> (a,a) ->((a,a),Bool) 
+doTest2 f (a,b) = ((a,b),f a b)  
+            
+testSetOpProps :: IO ()
+testSetOpProps = do
+                   -- generate testdata
+                   seed <- newStdGen
+                   let n = 100
+                   let lo = 0
+                   let hi = 50
+                   let tests = getRndSetList n (lo,hi) seed
+                   let testcases1 = fst $ tests
+                   let testcases2 = fst $ getRndSetList n (lo,hi) (snd tests)
+                   let zipTests = zip testcases1 testcases2
+                   -- test out properties
+                   putStrLn "----------------- intersectProperty"
+                   mapM_ printFalseTest (map (doTest2 intersectProperty) zipTests)
+                   putStrLn "----------------- unionProperty"
+                   mapM_ printFalseTest (map (doTest2 unionProperty) zipTests)
+                   putStrLn "----------------- differenceProperty"
+                   mapM_ printFalseTest (map (doTest2 differenceProperty) zipTests)
+                   putStrLn "----------------- Tests Done!" 
+                   return ()                     
+
+
+{--
+    Test Report
+    
+    We tested the functions using the properties above.
+    
+    Using own random data generator:
+    we used testSetOpProps to test 100 random testCases of sets that have between 0 and 50 elements
+    testSetOpProps returns a testcase if the test came out false, but is not as fancy as quickcheck in that it shrinks the testcase
+    
+    Using quickcheck:
+    We made the Set a an instance of Arbitrary in the previous exercises, but quickcheck needs a hint as to which datatype it needs 
+    to generate Sets of so we decided on Int (otherwise only empty sets will be tested, because these are polymorphic due to []).
+    We use verbosecheck to convince ourself that relevant testdata was generated.
+
+--}
                     
 -- exercise 5
 -- time spent: 20 minutes
@@ -143,12 +186,12 @@ test_trClos xs = testLength xs && testElem xs
 
 -- the length of the transitive closure of a relation should be 
 -- at least the same size as the original relation.
-testLength :: Set Int -> Bool
+testLength :: Rel Int -> Bool
 testLength xs = length (trClos xs) >= length (nub xs)
 
 -- checks whether the original relation is still included in the
 -- transitive closure of the relation.
-testElem :: Set Int -> Bool
+testElem :: Rel Int -> Bool
 testElem xs = and (map (\x -> x `elem` (trClos xs)) xs)
 
 -- checks for each pair of element of the pattern (a,b) (b,c) 
