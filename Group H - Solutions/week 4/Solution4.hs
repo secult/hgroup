@@ -105,9 +105,11 @@ unionProperty x y  = subSet x union && subSet y union
 -- So the difference has objects that are in either one of the sets, which can be checked by using a union					 
 differenceProperty :: (Set Int) -> (Set Int) -> Bool
 differenceProperty x y  = subSet difference $ setUnion x y
--- todo : jonatan testreport! :) (felipez-quark)
 					 where difference = setDifference x y
-                     
+                    
+-- todo : jonatan testreport! :) (felipez-quark)
+
+                    
 -- exercise 5
 -- time spent: 20 minutes
 type Rel a = [(a,a)]
@@ -141,8 +143,23 @@ test_trClos xs = testLength xs && testElem xs
 
 -- the length of the transitive closure of a relation should be 
 -- at least the same size as the original relation.
+testLength :: Set Int -> Bool
 testLength xs = length (trClos xs) >= length (nub xs)
 
 -- checks whether the original relation is still included in the
 -- transitive closure of the relation.
+testElem :: Set Int -> Bool
 testElem xs = and (map (\x -> x `elem` (trClos xs)) xs)
+
+-- checks for each pair of element of the pattern (a,b) (b,c) 
+-- whether the element (a,c) in included in the relation
+-- testTrans :: Set Int -> Bool
+-- testTrans xs = [(a,d) | (a,b) <- r, (c,d) <- s, b == c, subSet r xs, subSet s xs]
+
+-- exercise 8
+-- Babylonian method
+-- No matter what value for x is chosen, the result converges to a
+-- f (x0) >= f (x1) >= ... >= f (xn) == sqrt (a)
+
+-- idea: x_(n) and x_(n+1) are the lengths of the site of a rectangle and the two values approach each other 
+-- until the rectangle is a square
