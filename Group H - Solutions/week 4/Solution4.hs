@@ -10,7 +10,14 @@ import Test.Hspec
 import Test.QuickCheck
 
 -- exercise 1
--- make something up
+{-
+Timon: 
+What I am struggeling most with is monads and random values. I am used to the concept of Object oriented programming
+languages where it is no problem for a function to just return some random values. In Haskell, this is quite difficult
+for me since I allways have to ensure that I am not mixing up IO and other data types.
+I also didn't know how to use list comprehension, but this issue is fine now. 
+The other topics from the book I am able to manage.
+-}
 
 -- exercise 2
 -- 45 minutes
@@ -182,7 +189,7 @@ main = hspec $ do
             trClos [(-7,7),(-7,7)] `shouldBe` [(-7,7)]
             
 -- exercise 7
-test_trClos xs = testLength xs && testElem xs
+test_trClos xs = testLength xs && testElem xs && testTrans (trClos xs)
 
 -- the length of the transitive closure of a relation should be 
 -- at least the same size as the original relation.
@@ -199,7 +206,7 @@ testElem xs = and (map (\x -> x `elem` (trClos xs)) xs)
 -- this function has to be called on a transitive closure and will return true,
 -- iff this relation is a transitive closure.
 testTrans :: Rel Int -> Bool
-testTrans xs =  and $ ([(a,d) `elem` xs | (a,b) <- xs, (c,d) <- xs, b == c, (a,b) `elem` xs, (c,d) `elem` xs])
+testTrans xs =  and $ ([(a,d) `elem` xs | (a,b) <- xs, (c,d) <- xs, b == c])
 
 -- exercise 8
 -- Babylonian method
