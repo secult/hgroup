@@ -88,16 +88,21 @@ setUnion = unionSet -- given in SetOrd
 setDifference :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
 setDifference (Set xs) (Set ys) = list2set $ [x | x <- xs, not $ elem x ys]
 
--- tests
--- todo : juriaan comments! :)
+-- test properties
+-- The intersection of two sets are all the objects that those sets share. 
+-- This means an intersection is a subset of both seperate sets
 intersectProperty :: (Set Int) -> (Set Int) -> Bool
 intersectProperty x y = subSet intersect x && subSet intersect y
 						where intersect = setIntersection x y
-						
+
+-- A union of two sets contains all the objects of those sets.
+-- So both sets are a subset of their union.				
 unionProperty :: (Set Int) -> (Set Int) -> Bool
 unionProperty x y  = subSet x union && subSet y union
 					 where union = setUnion x y
-					 
+
+-- The difference of two sets are the all the objects that one set has, that the other has not.
+-- So the difference has objects that are in either one of the sets, which can be checked by using a union					 
 differenceProperty :: (Set Int) -> (Set Int) -> Bool
 differenceProperty x y  = subSet difference $ setUnion x y
 -- todo : jonatan testreport! :) (felipez-quark)
