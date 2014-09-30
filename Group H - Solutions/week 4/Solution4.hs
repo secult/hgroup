@@ -34,9 +34,9 @@ and difference functions from Data.List for exercise 4, but since we're working 
 But suppose we used the functions from Data.List, would this be a problem?
 
 Timon: 
-What I am struggeling most with is monads and random values. I am used to the concept of Object oriented programming
-languages where it is no problem for a function to just return some random values. In Haskell, this is quite difficult
-for me since I allways have to ensure that I am not mixing up IO and other data types.
+What I am struggling most with is monads and random values. I am used to the concept of Object oriented programming
+languages where it is no problem for a method to just return some random values. In Haskell, this is quite difficult
+for me since I always have to ensure that I am not mixing up IO and other data types.
 I also didn't know how to use list comprehension, but this issue is fine now. 
 The other topics from the book I am able to manage.
 -}
@@ -260,9 +260,17 @@ testTrans xs =  and $ ([(a,d) `elem` xs | (a,b) <- xs, (c,d) <- xs, b == c])
    Time spent: 40 min
    
 ----------------------------------------------------------------------------------------------------------------}
--- Babylonian method:
--- No matter what value for x is chosen, the result converges to a
--- f (x0) >= f (x1) >= ... >= f (xn) == sqrt (a)
+{- 
 
--- idea: x_(n) and x_(n+1) are the lengths of the site of a rectangle and the two values approach each other 
--- until the rectangle is a square
+Babylonian method:
+No matter what value for x is chosen, the result converges to a (of course, better start values for x decrease
+the amount of required steps.
+f (x0) >= f (x1) >= ... >= f (xn) == sqrt (a)
+
+Idea behind this algorithm: x_(n) can be seen as one site of a rectangle, where the area of the rectangle is A (a²). 
+The goal of the algorithm now is to create a square with the given area A by recursion (exit condition x == f(x)).
+The algorithm uses x_(n) as a start value to calculate x_(n+1), where x_(n+1) is the second page of the rectangle.
+Two opposing sites have a side length of x_(n) and the two others have a length of x_(n+1). The area of the 
+rectangle stays the same for each step, but the side lenghts change until the rectangle is a square.(x_(n) == x_(n+1))
+
+-}
