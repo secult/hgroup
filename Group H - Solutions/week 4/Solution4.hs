@@ -9,8 +9,30 @@ import System.Random
 import Test.Hspec
 import Test.QuickCheck
 
--- exercise 1
+
+{----------------------------------------------------------------------------------------------------------------
+
+    Exercise 1
+    Time Spent: 2 hours
+
+----------------------------------------------------------------------------------------------------------------}
+ 
 {-
+Jonatan: 
+For some reason, the logics course on my uni didn't cover relations o.0 (or at least not that I can remember). 
+So that's why I felt the jump in difficulty last week in Testing, I had already seen al we covered up until now. 
+That said, I think relations should be fine now that I studied the Haskell Road chapter properly.
+Exercises in the Haskell Road I had difficulties with:
+- Applying the concept of closure to the differnt types of relations (I've practiced this a bit on practical examples, so this should be fine now)
+- 5.36, the difficulty here was in generalizing the proof, but with help of Pavol I got it solved
+- 5.39 2, We solved this in the workshop, but before this the trouble I had was deciding on what S should look like (what properties it should have)
+- 5.48 2, I do not get what the meaning is of "extends" in this exercise.
+
+A general question: I wonder which libraries we may use when solving the assignments. E.g. We use Data.Functor here because it provides an easy syntax 
+for making Set a an instance of Arbitrary (although an Monad extract and return would also work fine). We also considered using the union, intersect 
+and difference functions from Data.List for exercise 4, but since we're working with relations we think it's cooler to use list comprehensions. 
+But suppose we used the functions from Data.List, would this be a problem?
+
 Timon: 
 What I am struggeling most with is monads and random values. I am used to the concept of Object oriented programming
 languages where it is no problem for a function to just return some random values. In Haskell, this is quite difficult
@@ -19,12 +41,20 @@ I also didn't know how to use list comprehension, but this issue is fine now.
 The other topics from the book I am able to manage.
 -}
 
--- exercise 2
--- 45 minutes
+{----------------------------------------------------------------------------------------------------------------
 
+    Exercise 2
+    Time Spent: 45 minutes
+    
+----------------------------------------------------------------------------------------------------------------}
 
--- exercise 3
--- 2 hours
+{----------------------------------------------------------------------------------------------------------------
+
+   Exercise 3
+   Time Spent: 2:30 hours
+
+----------------------------------------------------------------------------------------------------------------}   
+-- From scratch: 
 interactiveRandomSetGenerator :: IO()
 interactiveRandomSetGenerator = do
                                     seed <- newStdGen
@@ -47,8 +77,7 @@ interactiveRandomSetGenerator = do
                                     if i4 == "n" 
                                     then interactiveRandomSetGenerator
                                     else return ()                                            
-                                                          
--- From scratch:                                
+                                                                                     
 getRndSetList :: Int -> (Int, Int) -> StdGen -> ([Set Int], StdGen)
 getRndSetList 0 (_,_)   g = ([],g)
 getRndSetList n bnd g = let (len,ng)  = randomR bnd (snd $ split g)
@@ -59,7 +88,7 @@ getRndSetList n bnd g = let (len,ng)  = randomR bnd (snd $ split g)
 getRndSet :: Int -> StdGen -> (Set Int, StdGen)
 getRndSet i g = (list2set $ (randomList i g), snd $ next g)
                 
---edited from www.haskell.org/haskelwiki/Examples/Random_list
+-- edited from www.haskell.org/haskelwiki/Examples/Random_list
 randomList :: Int -> StdGen -> [Int]
 randomList n gen = take n $ unfoldr (Just . randomR(1, maxBound)) gen             
                 
@@ -81,7 +110,13 @@ propSorted (Set a) = a == sort a
 propInsert :: Set Int -> Bool
 propInsert (Set a) = (foldr insertSet (Set a) a) == (Set a)
 
--- exercise 4
+{----------------------------------------------------------------------------------------------------------------
+
+    Exercise 4
+    Time spent: 1,5 hour
+    
+----------------------------------------------------------------------------------------------------------------}
+
 setIntersection :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
 setIntersection (Set xs) (Set ys) = list2set $ [x | x <- xs, elem x ys]
 
@@ -92,6 +127,7 @@ setDifference :: (Eq a, Ord a) => (Set a) -> (Set a) -> (Set a)
 setDifference (Set xs) (Set ys) = list2set $ [x | x <- xs, not $ elem x ys]
 
 -- test properties
+
 -- The intersection of two sets are all the objects that those sets share. 
 -- This means an intersection is a subset of both seperate sets
 intersectProperty :: (Set Int) -> (Set Int) -> Bool
@@ -104,16 +140,28 @@ unionProperty :: (Set Int) -> (Set Int) -> Bool
 unionProperty x y  = subSet x union && subSet y union
 					 where union = setUnion x y
 
--- The difference of two sets are the all the objects that one set has, that the other has not.
+-- The difference of two sets are all the objects that one set has, that the other has not.
 -- So the difference has objects that are in either one of the sets, which can be checked by using a union					 
 differenceProperty :: (Set Int) -> (Set Int) -> Bool
 differenceProperty x y  = subSet difference $ setUnion x y
 					 where difference = setDifference x y
 
+{--
+    Test Report
+    
+    We tested the functions using the properties above.
+    
+    Using own random data generator:
+    we used testSetOpProps (see below) to test 100 random testCases of sets that have between 0 and 50 elements
+    testSetOpProps returns a testcase if the test came out false, but is not as fancy as quickcheck in that it shrinks the testcase
+    
+    Using quickcheck:
+    We made the Set a an instance of Arbitrary in the previous exercises, but quickcheck needs a hint as to which datatype it needs 
+    to generate Sets of so we decided on Int (otherwise only empty sets will be tested, because these are polymorphic due to []).
+    We use verbosecheck to convince ourself that relevant testdata was generated.
 
---------------------------------------------------------------------------------
+--}
 
--- Print the testcase if the result was false
 printFalseTest :: Show a => ((Set a, Set a), Bool) -> IO ()
 printFalseTest (a,False) = putStrLn $ "false: " ++ (show a)
 printFalseTest _         = return () 
@@ -142,26 +190,13 @@ testSetOpProps = do
                    mapM_ printFalseTest (map (doTest2 differenceProperty) zipTests)
                    putStrLn "----------------- Tests Done!" 
                    return ()                     
-
-
-{--
-    Test Report
-    
-    We tested the functions using the properties above.
-    
-    Using own random data generator:
-    we used testSetOpProps to test 100 random testCases of sets that have between 0 and 50 elements
-    testSetOpProps returns a testcase if the test came out false, but is not as fancy as quickcheck in that it shrinks the testcase
-    
-    Using quickcheck:
-    We made the Set a an instance of Arbitrary in the previous exercises, but quickcheck needs a hint as to which datatype it needs 
-    to generate Sets of so we decided on Int (otherwise only empty sets will be tested, because these are polymorphic due to []).
-    We use verbosecheck to convince ourself that relevant testdata was generated.
-
---}
                     
--- exercise 5
--- time spent: 20 minutes
+{---------------------------------------------------------------------------------------------------------------- 
+
+    Exercise 5
+    Time spent: 20 minutes
+    
+----------------------------------------------------------------------------------------------------------------}
 type Rel a = [(a,a)]
 
 infixr 5 @@
@@ -174,8 +209,12 @@ trClos r | r == nr   = sort r
          | otherwise = sort (nub (nr ++ trClos nr))
             where nr = nub (r ++ (r @@ r))
 
--- exercise 6
--- time spent: 20 minutes
+{----------------------------------------------------------------------------------------------------------------
+
+   Exercise 6
+   Time spent: 20 minutes
+
+----------------------------------------------------------------------------------------------------------------}
 main :: IO ()
 main = hspec $ do 
     describe "trClos" $ do
@@ -187,8 +226,15 @@ main = hspec $ do
             trClos ([] :: Rel Int) `shouldBe` ([] :: Rel Int)
         it "returns a relation without duplicates if there are any" $
             trClos [(-7,7),(-7,7)] `shouldBe` [(-7,7)]
+
+{----------------------------------------------------------------------------------------------------------------
             
--- exercise 7
+   Exercise 7
+   Time spent: 40 min
+
+----------------------------------------------------------------------------------------------------------------}   
+
+-- Combine the properties to use more easily in quickCheck
 test_trClos xs = testLength xs && testElem xs && testTrans (trClos xs)
 
 -- the length of the transitive closure of a relation should be 
@@ -203,13 +249,18 @@ testElem xs = and (map (\x -> x `elem` (trClos xs)) xs)
 
 -- checks for each pair of element of the pattern (a,b) (b,c) 
 -- whether the element (a,c) in included in the relation
--- this function has to be called on a transitive closure and will return true,
--- iff this relation is a transitive closure.
+-- this function has to be called on a transitive closure and will return True,
+-- iff this relation is a transitive.
 testTrans :: Rel Int -> Bool
 testTrans xs =  and $ ([(a,d) `elem` xs | (a,b) <- xs, (c,d) <- xs, b == c])
 
--- exercise 8
--- Babylonian method
+{----------------------------------------------------------------------------------------------------------------
+
+   Exercise 8
+   Time spent: 40 min
+   
+----------------------------------------------------------------------------------------------------------------}
+-- Babylonian method:
 -- No matter what value for x is chosen, the result converges to a
 -- f (x0) >= f (x1) >= ... >= f (xn) == sqrt (a)
 
