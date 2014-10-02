@@ -48,24 +48,3 @@ hasAllNumbers x = nub x == x && sum x == sum [1..9] && not (any (<= 0) x)
 inRangeAndNoDups :: [Value] -> Bool
 inRangeAndNoDups a = nub x == x && x \\ [1..9] == []
 					 where x = filter (/=0) a
-
---exercise 2
---not very efficient, replace nub with checking for a zero when removing a value
-removeHints :: Grid -> [Grid]
-removeHints g = nub $ map (removeValues g) rowsAndColumns
-
-removeValues:: Grid -> (Row, Column) -> Grid
-removeValues g rc = sud2grid (extend (grid2sud g) (rc, 0))
-
-rowsAndColumns :: [(Int,Int)]
-rowsAndColumns = [(x,y) | x <- positions, y <- positions]
-
-multipleSolutions :: [Grid] -> Bool
-multipleSolutions [] = False
-multipleSolutions (x:xs) | length (solveNs (initNode x)) > 1 = True
-			 | otherwise = multipleSolutions xs
-
-testMinimal :: [Node] -> Bool
-testMinimal x = length (solveNs x) == 1 && multipleSolutions (removeHints fst(take 1 x))
-
-
