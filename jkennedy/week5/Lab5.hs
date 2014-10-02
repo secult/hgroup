@@ -93,6 +93,8 @@ emptyBlock s a = foldr (\x acc -> eraseS acc x) s singleBlock where
 blockPositions :: [[(Row, Column)]]
 blockPositions = [[(x,y) | x <- a, y <- b] | a <- blocks, b <- blocks]
 
+--I dont want to bother with creating a random function that gives me a list of 3 unique integers
+-- so I create a list with all posibilities and use the getRandomItem function from Week5
 meBeingLazyList :: [[Int]]
 meBeingLazyList = [[x,y,z] | x <- [0..8], y <- [0..8], z <- [0..8], x /= y, y /= z, x /= z]
 
