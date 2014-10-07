@@ -42,7 +42,6 @@ sudokuSpecs = hspec $ do
 				and (map inRangeAndNoDups [subGrid s (r,c) | r <- [1,4,7], c <- [1,4,7]]) `shouldBe` True
 
 
-
 hasAllNumbers :: [Value] -> Bool
 hasAllNumbers x = nub x == x && sum x == sum [1..9] && not (any (<= 0) x)
 
@@ -51,27 +50,36 @@ inRangeAndNoDups a = nub x == x && x \\ [1..9] == []
 					 where x = filter (/=0) a
 
 --exercise 2, 2 hours
---not very efficient, replace nub with checking for a zero when removing a value
-removeHints :: Grid -> [Grid]
-removeHints g = nub $ map (removeValues g) rowsAndColumns
 
-removeValues:: Grid -> (Row, Column) -> Grid
-removeValues g rc = sud2grid (extend (grid2sud g) (rc, 0))
 
-rowsAndColumns :: [(Int,Int)]
-rowsAndColumns = [(x,y) | x <- positions, y <- positions]
+minimal :: [[Int]]
+minimal =  [[5,3,0,0,7,0,0,0,0],
+            [6,0,0,1,9,5,0,0,0],
+            [0,9,8,0,0,0,0,6,0],
+            [8,0,0,0,6,0,0,0,3],
+            [4,0,0,8,0,3,0,0,1],
+            [7,0,0,0,2,0,0,0,6],
+            [0,6,0,0,0,0,2,8,0],
+            [0,0,0,4,1,9,0,0,5],
+            [0,0,0,0,8,0,0,7,9]]
+           
+doTestMinimal = testMinimal.head.initNode
 
-multipleSolutions :: [Grid] -> Bool
-multipleSolutions [] = False
-multipleSolutions (x:xs) | length (solveNs (initNode x)) > 1 = True
-			 | otherwise = multipleSolutions xs
+-- check if the solution is minimal and that none of its children are minimal
+testMinimal :: Node -> Bool
+testMinimal x = uniqueSol x && not (or $ map testMinimal $ removeHints x)
 
-testMinimal :: [Node] -> Bool
-testMinimal [] = False 
-testMinimal [x] = length (solveNs [x]) == 1 && multipleSolutions (removeHints g) where
-		g = sud2grid $ fst x
+-- get the states of the sudoku with one of the filled positions removed 
+removeHints :: Node -> [Node]
+removeHints (s,c) = getStates s (filledPositions s)
+  
+-- build up all sudoku states and find their constraints  
+getStates :: Sudoku -> [(Row,Column)] -> [Node]
+getStates s xs = map (\sud -> (sud,constraints sud)) sudokus
+             where sudokus = foldr (\a b -> (eraseS s a) : b) [s] xs
 
---exercise 3, 3 hours
+
+--exercise 3, 3 hours -- jurriaans version
 genSudokuEmptyBlocks :: IO()
 genSudokuEmptyBlocks = do 
 			[r] <- rsolveNs [emptyN]
@@ -80,7 +88,7 @@ genSudokuEmptyBlocks = do
 			z <- genProblem x
 			if length (snd z) > 27 then do
 				showNode z
-				putStrLn $ show $ testMinimal [z]
+				putStrLn $ show $ testMinimal z
 			else genSudokuEmptyBlocks
 
 removeBlocks :: Sudoku -> [Int] -> Sudoku
@@ -119,24 +127,40 @@ There could still be a possibility that a proper Sudoku with 4 empty blocks exis
 --exercise 4
 
 {--
-    Additional Formal specifications
-    Subgrids can overlap
+    Additional Formal specifications:
+        Subgrids can overlap (the same rules apply other than that), 
+        this means:
+            let f be a function with:
+                Domain: sudoku grid coordinates
+                Codomain: sudoku subgrids + nrcSudoku subgrids
+            
+            for the nrcSudoku f is no longer injective as f may return 
+            more than one subgrid for each coordinate.
+            
+            The consequence of this is that the constraint for the value 
+            of a coordinate changes to:
+                - the value must be unique in the row and column of the coordinate
+                - the value must be unique in the Union of the coordinates of each subgrid 
+                  the coordinate belongs to 
+    
+    Implementation:
+        the only changing constraint is that subgrids can overlap 
+        this change can be implemented as follows:
+            - add nrcBlocks, which is the same as the blocks function, but with the 
+              coordinates of the additional blocks in an nrcSudoku
+            - add function nrcbl, which is similar to bl, but uses nrcBlocks
+            - redefine the subGrid function (which is exactly f in the formal specifications) 
+              to concatenate the coordinates belonging to bl and nrcbl
+        Additionally the following functionality has been added:
+            - Added a control boolean nrcsudoku
+                - If it is true, the program will use nrc sudokus
+                - If it is false, the program will use regular sudokus
+            
+    Testing: Todo :D
+        - test if nrcbl returns the proper coordinates (exhaustive)
+        - test if the subGrid gives back union of coordinates (exhaustive)    
 --}
 
-nrcBlocks :: [[Int]]
-nrcBlocks = [[1..3], [2..4],[4..6],[5..7],[7..9]]
+-- exercise 5
 
 
-
-
-
-
-
-
-
-
-
-
-
-
--- A nice way to view NRC style sudokus:
