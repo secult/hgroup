@@ -1,31 +1,13 @@
-module Lab5
+﻿module Lab5 where
 
-where
 import Data.List
 import Week5
 import Test.Hspec
-import Test.QuickCheck
+--import Test.QuickCheck
 import Data.Functor
+--import ShowSudoku
 
---exercise 1, 4 hours 
-{--
-
-Can you use QuickCheck?
-Yes you could use quickcheck, but you would have to do some hacking:
-- You would have to wrap the 'Grid' type synonym into a datatype with it's own constructor, 
-  because instances do not work with Type synonyms.
-- After this, you would have to make this datatype an instance of Arbitrary. 
-    - Due to the constraints of a Grid (length, width, consistency, ...) you should provide your own Gen Grid
-    - You can not do this with any of the functions provided in the week5 module, 
-      because almost all of these use IO and this is not allowed in Arbitrary. 
-
-So this basically means that using quickcheck would require you to either make your own sudoku generator and make that a Gen Grid
-or replacing all of the IO monads in Week5 with Gen monads.
-
-Since we can already generate random Sudoku problems and test this function, we do not use QuickCheck just for the sake of using QuickCheck.
-
---}
-
+--exercise 1, 3 hours + jonatans research, which returned nothing, thanks...
 sudokuSpecs :: IO()
 sudokuSpecs = hspec $ do
 	describe "complete sudoku" $ do
@@ -58,6 +40,7 @@ sudokuSpecs = hspec $ do
 				s <- fst <$> genProblem solved
 				and (map inRangeAndNoDups [subGrid s (r,c) | r <- [1,4,7], c <- [1,4,7]]) `shouldBe` True
 
+
 hasAllNumbers :: [Value] -> Bool
 hasAllNumbers x = nub x == x && sum x == sum [1..9] && not (any (<= 0) x)
 
@@ -66,6 +49,9 @@ inRangeAndNoDups a = nub x == x && x \\ [1..9] == []
 					 where x = filter (/=0) a
 
 --exercise 2, 1 hour
+
+-- Still need to test this exercise
+
 -- check if the solution is minimal and that none of its children are minimal
 testMinimal :: Node -> Bool
 testMinimal x = uniqueSol x && 
@@ -78,9 +64,11 @@ removeHints (s,c) = getStates s (filledPositions s)
 -- build up all sudoku states and find their constraints  
 getStates :: Sudoku -> [(Row,Column)] -> [Node]
 getStates s xs = map (\sud -> (sud,constraints sud)) sudokus
-             where sudokus = foldr (\a b -> (eraseS s a) : b) [] xs                      
-
---exercise 3, 3 hours
+             where sudokus = foldr (\a b -> (eraseS s a) : b) [] xs        
+             
+             
+--exercise 3 -- Jonatan version (inspired by juriaans version)
+-- time spent: 30 minutes
 
 genSudokuEmptyBlocks :: IO()
 genSudokuEmptyBlocks = do
@@ -100,7 +88,7 @@ emptyBlock :: Int -> Sudoku -> Sudoku
 emptyBlock  a s = let blockPositions = [[(x,y) | x <- z, y <- p] | z <- blocks, p <- blocks]
                   in foldl eraseS s (blockPositions !! a) 
             
--- lazy evaluation makes sure this list is never built up completely :)
+-- Juriaans suggestion, and I approve, because lazy evaluation makes sure this list is never built up completely :)
 meBeingLazyList :: [[Int]]
 meBeingLazyList = [[x,y,z] | x <- [0..8], y <- [0..8], z <- [0..8], x /= y, y /= z, x /= z]
 
@@ -184,7 +172,7 @@ There could still be a possibility that a proper Sudoku with 4 empty blocks exis
         | 1   4 2 | 5   6   3 | 8 9   7 |
         +---------+-----------+---------+
 
---}		
+--}
 
 -- exercise 5
 
@@ -197,72 +185,96 @@ There could still be a possibility that a proper Sudoku with 4 empty blocks exis
       - check if problem x (generated from y) is minimal
       - check if the solution for problem x (generated from y) is equal to y 
 --}
-	 
--- Exercise 6
--- 1 -> easy, 10 -> hard
+
+-- exercise 6
+
+{--
+    Method:
+    
+    Generate Sudoku x
+    Generate Problem y from x
+    - recursively apply simpleTechnique 1 and 2 until stuck 
+    - try to solve rest of values by refution
+    
+--}
+
 type Difficulty = Float
 
+doHumanSolve :: IO Difficulty
+doHumanSolve = do
+                (solution, n) <- genRandomSudoku
+                problem  <- genProblem (solution, n)
+                return $ humanSolve solution problem
+
 humanSolve :: Sudoku -> Node -> Difficulty
-humanSolve sol prob | (sud2grid sol) == (sud2grid $ fst prob) = 1
-                    | (sud2grid $ fst prob) /= (sud2grid $ fst logicSol) = humanSolve sol logicSol
-                    | otherwise = refute sol prob
-                        where logicSol = logicSolve prob
-                    
-                    
-logicSolve :: Node -> Node
-logicSolve (sud,con) = undefined --any map  (\ (sud',con')
+humanSolve sol prob | (sud2grid sol) == (sud2grid $ fst prob)    = 0
+                    | (sud2grid $ fst prob) == (sud2grid $ fst logicSolve) = humanSolve sol logicSolve --Apply logic to solve sudoku
+                    | otherwise          = undefined --Get mean refutation for open fields 
+                    where
+                       logicSolve = solveByLogic prob
 
-nakedSingle :: [Constraint] -> Sudoku -> Sudoku
-nakedSingle cs sud = foldr (\ (row,col,vs) sud' -> if (length vs == 1) 
-                                                then extend sud ((row,col),head vs)
-                                                else sud') sud cs
-                                                
-hiddenSingle :: Sudoku -> Sudoku
-hiddenSingle sud = undefined --foldr (\ [row] sud 
+solveByLogic :: Node -> Node
+solveByLogic n = let emptyPos = [ (r,c) | r <- positions, c <- positions, (fst newN) (r,c) == 0 ]
+                     newN = undefined --foldr with tech2 
+                 in foldr tech1 newN emptyPos 
+
+-- Single Position check if there is only one free position within (c,r,s)                
+singlePosition :: (Row,Column) -> Node -> Node
+singlePosition = undefined
+
+-- Single Candidate
+singleCandidate :: (Row,Column) -> Node -> Node
+singleCandidate = undefined
+
+-- for each empty position, check each value except for the actual value, try one of above techniques until contradiction 
+refute :: Node -> Sudoku -> Difficulty
+refute state solution = undefined
 
 
-hiddenSingleColumn :: Sudoku -> Sudoku
-hiddenSingleColumn sud = foldr extSingleCol sud positions
 
 
-extSingleCol :: Column -> Sudoku -> Sudoku
-extSingleCol col sud | length value == 1 = extend sud (head (getEmptyInColumn sud col), head value)
-                     | otherwise = sud
-                            where value = freeInColumn sud col
 
-getEmptyInColumn :: Sudoku -> Column -> [(Row,Column)]
-getEmptyInColumn sud col = filter (\ (r,c) -> c == col) (openPositions sud)
 
-hiddenSingleRow :: Sudoku -> Sudoku
-hiddenSingleRow = undefined
 
-getEmptyInRow :: Sudoku -> Row -> [Column]
-getEmptyInRow sud row = undefined -- filter (\ (r,c) -> r == row) (openPositions sud)
 
-hiddenSingleSubgrid :: Sudoku -> Sudoku
-hiddenSingleSubgrid = undefined
 
-getEmptyInSubgrid :: Sudoku -> (Row,Column) -> [Row]
-getEmptyInSubgrid sud sg = undefined --filter (undefined) (openPositions sud)
 
-eachSub :: [(Row,Column)]
-eachSub = [(a,b) | a <- [2,5,8], b <- [2,5,8]]
 
-refute :: Sudoku -> Node -> Difficulty
-refute sud n = undefined
 
-bruteSudoku :: Difficulty -> IO Sudoku
-bruteSudoku = undefined
 
-example1' :: Grid
-example1' = [[5,3,0,0,7,0,0,0,0],
-             [6,0,0,1,9,5,0,0,0],
-             [1,9,8,0,0,0,0,6,0],
-             [8,0,0,0,6,0,0,0,3],
-             [4,0,0,8,0,3,0,0,1],
-             [7,0,0,0,2,0,0,0,6],
-             [9,6,0,0,0,0,2,8,0],
-             [2,0,0,4,1,9,0,0,5],
-             [0,0,0,0,8,0,0,7,9]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+getEmptyInColumn :: Sudoku -> [Column]
+getEmptyInColumn s c = filter (\(r,c') -> c' == c ) (openPositions s)
+
+
+
+
+
+
+
+
+
 
 

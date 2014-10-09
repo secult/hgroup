@@ -1,17 +1,34 @@
 module Week5 where 
 
+{----------------------------------------------------
+    
+    Part of this module has been moved to the 
+    ShowSudoku module.
+    
+    The control variable nrcsudoku is in the 
+    ShowSudoku module
+    
+----------------------------------------------------}
+
 import Data.List
 import System.Random
 import ShowSudoku
 
--- get the block coordinates that the coordinate belongs to Note NRC can have multiple, so redefine this
+-- get the block coordinates of an original sudoku
 bl :: Int -> [Int]
 bl x = concat $ filter (elem x) blocks 
 
+-- get the block coordinates that the coordinate belongs to Note NRC can have multiple, so redefine this
+nrcbl :: Int -> [Int]
+nrcbl x = concat $ filter (elem x) nrcBlocks
+
 -- get the subgrid corresponding to the (R,C) Note: NRC can have multiple, so redefine this
 subGrid :: Sudoku -> (Row,Column) -> [Value]
-subGrid s (r,c) = 
-  [ s (r',c') | r' <- bl r, c' <- bl c ]
+subGrid s (r,c) | nrcsudoku = nub (nrcFields ++ defFields)
+                | otherwise = defFields
+                where
+                    defFields = [ s (r',c') | r' <- bl r,    c' <- bl c ] 
+                    nrcFields = [ s (r',c') | r' <- nrcbl r, c' <- nrcbl c]
 
 -- check what values are not used in a sequence (used for Subgrid) 
 freeInSeq :: [Value] -> [Value]
@@ -73,10 +90,6 @@ extend = update
 update :: Eq a => (a -> b) -> (a,b) -> a -> b 
 update f (y,z) x = if x == y then z else f x 
 
--- show a node 
-showNode :: Node -> IO()
-showNode = showSudoku . fst
-
 -- extend a node
 extendNode :: Node -> Constraint -> [Node]
 extendNode (s,constraints) (r,c,vs) =           -- Extend the node by:
@@ -101,7 +114,8 @@ prune (r,c,v) ((x,y,zs):rest)
   
 -- check if the Row and columns are in the same block NB: NRC  
 sameblock :: (Row,Column) -> (Row,Column) -> Bool
-sameblock (r,c) (x,y) = bl r == bl x && bl c == bl y 
+sameblock (r,c) (x,y) = (bl r    == bl x     && bl c     == bl y   ) ||
+                        (nrcbl r == nrcbl x  && nrcbl c  == nrcbl y)
 
 
 -- Turn a grid into a node if it is consistent
@@ -140,7 +154,6 @@ search children goal (x:xs)
   | otherwise = search children goal 
                                 ((children x) ++ xs)
 
- 
 -- search  
 solveNs :: [Node] -> [Node]
 solveNs = search succNode solved 
@@ -202,7 +215,7 @@ rsuccNode (s,cs) =
         then return []
         else return (extendNode (s,cs\\xs) (head xs))
 
--- reverseSolve a sudoku (make a minimal sudoku out of a complete one)
+-- ?
 rsolveNs :: [Node] -> IO [Node]
 rsolveNs ns = rsearch rsuccNode solved (return ns)
 

@@ -77,7 +77,9 @@ create x = do
                 showNode z
                 solveShowNs [z]
             else
-                create x
+                do
+                    putStrLn "not minimal! trying again..."
+                    create x
 
 removeBlocks :: Sudoku -> [Int] -> Sudoku
 removeBlocks sud [] = sud
@@ -97,15 +99,15 @@ randomList xs x = do
 -- translates a position of a block in the Sudoku (1..9) 
 -- into the corresponding (Row,Column) pairs
 listPos :: Int -> [(Row,Column)]
-listPos x | x == 1 = [(1,1),(1,2),(1,3),(2,1),(2,2),(2,3),(3,1),(3,2),(3,3)]
-listPos x | x == 2 = [(1,4),(1,5),(1,6),(2,4),(2,5),(2,6),(3,4),(3,5),(3,6)]
-listPos x | x == 3 = [(1,7),(1,8),(1,9),(2,7),(2,8),(2,9),(3,7),(3,8),(3,9)]
-listPos x | x == 4 = [(4,1),(4,2),(4,3),(5,1),(5,2),(5,3),(6,1),(6,2),(6,3)]
-listPos x | x == 5 = [(4,4),(4,5),(4,6),(5,4),(5,5),(5,6),(6,4),(6,5),(6,6)]
-listPos x | x == 6 = [(4,7),(4,8),(4,9),(5,7),(5,8),(5,9),(6,7),(6,8),(6,9)]
-listPos x | x == 7 = [(7,1),(7,2),(7,3),(8,1),(8,2),(8,3),(9,1),(9,2),(9,3)]
-listPos x | x == 8 = [(7,4),(7,5),(7,6),(8,4),(8,5),(8,6),(9,4),(9,5),(9,6)]
-listPos x | x == 9 = [(7,7),(7,8),(7,9),(8,7),(8,8),(8,9),(9,7),(9,8),(9,9)]
+listPos x | x == 1 = [(x,y) | x <- [1..3],y <- [1..3]]
+listPos x | x == 2 = [(x,y) | x <- [1..3],y <- [4..6]]
+listPos x | x == 3 = [(x,y) | x <- [1..3],y <- [7..9]]
+listPos x | x == 4 = [(x,y) | x <- [4..6],y <- [1..3]]
+listPos x | x == 5 = [(x,y) | x <- [4..6],y <- [4..6]]
+listPos x | x == 6 = [(x,y) | x <- [4..6],y <- [7..9]]
+listPos x | x == 7 = [(x,y) | x <- [7..9],y <- [1..3]]
+listPos x | x == 8 = [(x,y) | x <- [7..9],y <- [4..6]]
+listPos x | x == 9 = [(x,y) | x <- [7..9],y <- [7..9]]
 
 
 -- Exercise 4
