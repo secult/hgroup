@@ -1,7 +1,142 @@
-module Week5 where 
+﻿module Week5 where 
 
 import Data.List
 import System.Random
+
+
+{---------------------------------------------------------
+ 
+ Extended functions:
+ the original functions are below this section. 
+ they are commented out. the extended functions also work
+ with regular sudokus, just define nrcsudoku as False
+ 
+----------------------------------------------------------}
+
+-- nrc sudoku exercise:
+nrcSample :: Grid
+nrcSample = [[0,0,0,3,0,0,0,0,0],
+             [0,0,0,7,0,0,3,0,0],
+             [2,0,0,0,0,0,0,0,8],
+             [0,0,6,0,0,5,0,0,0],
+             [0,9,1,6,0,0,0,0,0],
+             [3,0,0,0,7,1,2,0,0],
+             [0,0,0,0,0,0,0,3,1],
+             [0,8,0,0,4,0,0,0,0],
+             [0,0,2,0,0,0,0,0,0]]
+
+nrcSolvedSample :: IO()
+nrcSolvedSample = do 
+                   let x = solveNs $ initNode nrcSample
+                   if null x then putStrLn "no solution found"
+                   else showNode $ head x
+
+-- Make this true to use nrc sudokus
+nrcsudoku = True
+
+-- the additional blocks in an nrc sudoku
+nrcBlocks :: [[Int]]
+nrcBlocks = [[2..4],[6..8]]
+
+-- show the nrc grid when using nrcsudokus
+showGrid :: Grid -> IO()
+showGrid x@[as,bs,cs,ds,es,fs,gs,hs,is] | nrcsudoku = showNRCGrid x
+                                        | otherwise =
+ do putStrLn ("+-------+-------+-------+")
+    showRow as; showRow bs; showRow cs
+    putStrLn ("+-------+-------+-------+")
+    showRow ds; showRow es; showRow fs
+    putStrLn ("+-------+-------+-------+")
+    showRow gs; showRow hs; showRow is
+    putStrLn ("+-------+-------+-------+")
+
+--- PrettyPrint NRC Grid
+
+showNRCGrid :: Grid -> IO()
+showNRCGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
+ do putStrLn ("+---------+-----------+---------+")
+    showNRCRow as; 
+    putStrLn ("|   +-----|---+   +---|-----+   |")
+    showSpecRow bs; showSpecRow cs
+    putStrLn ("+---------+-----------+---------+")
+    showSpecRow ds; 
+    putStrLn ("|   +-----|---+   +---|-----+   |")
+    showNRCRow es; 
+    putStrLn ("|   +-----|---+   +---|-----+   |")
+    showSpecRow fs
+    putStrLn ("+---------+-----------+---------+")
+    showSpecRow gs; showSpecRow hs; 
+    putStrLn ("|   +-----|---+   +---|-----+   |")
+    showNRCRow is
+    putStrLn ("+---------+-----------+---------+")
+   
+showSpecRow :: [Value] -> IO()
+showSpecRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] =
+    mapM_ putStr 
+    [ "| ", showVal a1, " | ",
+            showVal a2, " ",
+            showVal a3, " | ",
+            showVal a4, " | ", 
+            showVal a5, " | ",
+            showVal a6, " | ",
+            showVal a7, " ",
+            showVal a8, " | ",
+            showVal a9, " |" ++ ['\n']
+    ]  
+    
+
+showNRCRow :: [Value] -> IO()
+showNRCRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
+    mapM_ putStr
+    [ "| ", showVal a1, "   ",
+            showVal a2, " ",
+            showVal a3, " | ",
+            showVal a4, "   ",
+            showVal a5, "   ",
+            showVal a6, " | ",
+            showVal a7, " ",
+            showVal a8, "   ",
+            showVal a9, " |" ++ ['\n']      
+    ]    
+
+-- the same as bl, but for the nrc blocks
+nrcbl :: Int -> [Int]
+nrcbl x = concat $ filter (elem x) nrcBlocks
+
+-- give back the values of the nrcgrid of an (r,c)
+nrcSubGrid :: Sudoku -> (Row,Column) -> [Value]
+nrcSubGrid s (r,c) = [ s (r',c') | r' <- nrcbl r, c' <- nrcbl c]  
+
+-- the free values in a subgrid for an element, should be the intersection of each subgrid it belongs to.
+freeInSubgrid :: Sudoku -> (Row,Column) -> [Value]
+freeInSubgrid s (r,c) | nrcsudoku = deflt `intersect` freeInSeq (nrcSubGrid s (r,c))
+                      | otherwise = deflt 
+                      where 
+                        deflt = freeInSeq (subGrid s (r,c))
+                   
+-- extended this method to account for the nrc sudoku if necessary   
+consistent :: Sudoku -> Bool
+consistent s = and $
+               [ rowInjective s r |  r <- positions ]
+                ++
+               [ colInjective s c |  c <- positions ]
+                ++
+               [ subgridInjective s (r,c) | r <- [1,4,7], c <- [1,4,7]]
+               ++
+               nrcStuff 
+               where nrcStuff = if nrcsudoku 
+                                then [ subgridInjective s (r,c) | r <- [2,6], c <- [2,6]]
+                                else []                    
+    
+-- when considering nrcsudokus, use the nrcblocks as well  
+sameblock :: (Row,Column) -> (Row,Column) -> Bool
+sameblock (r,c) (x,y) | nrcsudoku = defFields || nrcFields
+                      | otherwise = defFields 
+                      where 
+                        defFields = bl r == bl x && bl c == bl y
+                        nrcFields = nrcbl r == nrcbl x && nrcbl c == nrcbl y    
+    
+-- Customizations end ------------------------------------
 
 type Row    = Int 
 type Column = Int 
@@ -35,8 +170,9 @@ showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] =
      putStr (showVal a9) ; putChar ' '
      putChar '|'         ; putChar '\n'
 
+{--
 showGrid :: Grid -> IO()
-showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
+showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =                                       
  do putStrLn ("+-------+-------+-------+")
     showRow as; showRow bs; showRow cs
     putStrLn ("+-------+-------+-------+")
@@ -44,6 +180,7 @@ showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
     putStrLn ("+-------+-------+-------+")
     showRow gs; showRow hs; showRow is
     putStrLn ("+-------+-------+-------+")
+--} 
 
 type Sudoku = (Row,Column) -> Value
 
@@ -64,9 +201,9 @@ bl :: Int -> [Int]
 bl x = concat $ filter (elem x) blocks 
 
 subGrid :: Sudoku -> (Row,Column) -> [Value]
-subGrid s (r,c) = 
-  [ s (r',c') | r' <- bl r, c' <- bl c ]
+subGrid s (r,c) = [ s (r',c') | r' <- bl r, c' <- bl c ]
 
+  
 freeInSeq :: [Value] -> [Value]
 freeInSeq seq = values \\ seq 
 
@@ -77,10 +214,10 @@ freeInRow s r =
 freeInColumn :: Sudoku -> Column -> [Value]
 freeInColumn s c = 
   freeInSeq [ s (i,c) | i <- positions ]
-
+{--
 freeInSubgrid :: Sudoku -> (Row,Column) -> [Value]
 freeInSubgrid s (r,c) = freeInSeq (subGrid s (r,c))
-
+--}
 freeAtPos :: Sudoku -> (Row,Column) -> [Value]
 freeAtPos s (r,c) = 
   (freeInRow s r) 
@@ -102,15 +239,16 @@ subgridInjective :: Sudoku -> (Row,Column) -> Bool
 subgridInjective s (r,c) = injective vs where 
    vs = filter (/= 0) (subGrid s (r,c))
 
+{-- 
 consistent :: Sudoku -> Bool
 consistent s = and $
                [ rowInjective s r |  r <- positions ]
                 ++
                [ colInjective s c |  c <- positions ]
                 ++
-               [ subgridInjective s (r,c) | 
-                    r <- [1,4,7], c <- [1,4,7]]
-
+               [ subgridInjective s (r,c) | r <- [1,4,7], c <- [1,4,7]]
+--}
+                                
 extend :: Sudoku -> ((Row,Column),Value) -> Sudoku
 extend = update
 
@@ -137,18 +275,18 @@ length3rd :: (a,b,[c]) -> (a,b,[c]) -> Ordering
 length3rd (_,_,zs) (_,_,zs') = 
   compare (length zs) (length zs')
 
-prune :: (Row,Column,Value) 
-      -> [Constraint] -> [Constraint]
+prune :: (Row,Column,Value) -> [Constraint] -> [Constraint]
 prune _ [] = []
 prune (r,c,v) ((x,y,zs):rest)
-  | r == x = (x,y,zs\\[v]) : prune (r,c,v) rest
-  | c == y = (x,y,zs\\[v]) : prune (r,c,v) rest
-  | sameblock (r,c) (x,y) = 
-        (x,y,zs\\[v]) : prune (r,c,v) rest
-  | otherwise = (x,y,zs) : prune (r,c,v) rest
+  | r == x                = (x,y,zs\\[v]) : prune (r,c,v) rest
+  | c == y                = (x,y,zs\\[v]) : prune (r,c,v) rest
+  | sameblock (r,c) (x,y) = (x,y,zs\\[v]) : prune (r,c,v) rest
+  | otherwise             = (x,y,zs) : prune (r,c,v) rest
 
+{--   
 sameblock :: (Row,Column) -> (Row,Column) -> Bool
 sameblock (r,c) (x,y) = bl r == bl x && bl c == bl y 
+--}
 
 initNode :: Grid -> [Node]
 initNode gr = let s = grid2sud gr in 
@@ -345,4 +483,3 @@ main = do [r] <- rsolveNs [emptyN]
           showNode r
           s  <- genProblem r
           showNode s
-

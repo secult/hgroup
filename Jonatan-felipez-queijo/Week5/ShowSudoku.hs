@@ -1,7 +1,17 @@
 module ShowSudoku where
 
-import Data.List
-import System.Random
+{----------------------------------------------------
+    
+    This module deals with defining the datatypes, 
+    typesynonyms and the show methods. at the end, 
+    it also contains some example trees and sudoku's
+    
+----------------------------------------------------}
+
+-- True if you want to use nrc sudokus
+-- false if you want to use regular sudokus
+nrcsudoku = False
+
 
 data Tree a = T a [Tree a] deriving (Eq,Ord,Show)
 
@@ -23,10 +33,17 @@ values    = [1..9]
 blocks :: [[Int]]
 blocks = [[1..3],[4..6],[7..9]]
 
+nrcBlocks :: [[Int]]
+nrcBlocks = [[2..4],[6..8]]
+
+---------------------------------------------------- Node 
+showNode :: Node -> IO()
+showNode = showSudoku . fst
+
 ---------------------------------------------------- Sudoku
 showSudoku :: Sudoku -> IO()
-showSudoku = showGrid . sud2grid
-
+showSudoku | nrcsudoku = showNRCGrid . sud2grid
+           | otherwise = showGrid . sud2grid
 sud2grid :: Sudoku -> Grid
 sud2grid s = 
   [ [ s (r,c) | c <- [1..9] ] | r <- [1..9] ] 
