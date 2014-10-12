@@ -60,7 +60,7 @@ compareTime a b c = do
         return ((diffUTCTime t1 t2) < (diffUTCTime t3 t4))
 
 --exercise 3
---taken from timon, spent too much time on it
+--taken from timon, spent too much time on it, day or so
 composites :: [Integer]
 composites = sieve2 [2..] primes
 
@@ -71,6 +71,7 @@ sieve2 list@(n:ns) (p:ps) = (takeWhile (<p) list) ++
                                 else sieve2 (dropWhile (<=p) list) ps
 
  --exercise 4
+ --1h
 testPrimeF :: Int -> [Integer] -> [(Integer,IO Bool)]
 testPrimeF k (x:xs) = (x,(primeF k x)):testPrimeF k xs
 
@@ -106,6 +107,7 @@ testFalsePositiveComposite k = do
 -- as test repeats k times
 --i am at 556115 now with k=5, 488647 with k=10
  --exercise 5
+ --1h
 carmichael :: [Integer]
 carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) |
     k <- [2..],
@@ -118,7 +120,7 @@ testFalsePositiveCarmichael k = do
     showFalsePositives c
 --found only 2098397876980204801
 --exercise 6
-
+--1h
 testPrimeMR :: Int -> [Integer] -> [(Integer,IO Bool)]
 testPrimeMR k (x:xs) = (x,(primeMR k x)):testPrimeMR k xs
 
@@ -134,7 +136,7 @@ testFalsePositiveMRcomposites k = do
 --
 
 --exercise 7
-
+--1h but it has wierd results
 mersenneCheck :: Integer -> IO Bool
 mersenneCheck x = do
                 a<- primeMR 3 x
