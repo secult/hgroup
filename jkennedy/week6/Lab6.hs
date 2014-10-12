@@ -6,6 +6,7 @@ import System.Random
 import Week6
 import System.CPUTime
 import Text.Printf
+import Control.Monad
 
 carmichael :: [Integer]
 carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | 
@@ -52,4 +53,40 @@ exercise2 = do
 composites :: [Integer]
 composites = [x | x <- [2..], not $ isPrime x]
 
---exercise 4
+--exercise 4, 1 hour
+--because my exM function sucks I took one from the internet to help me increase the performance
+testFermatComposite :: IO Integer
+testFermatComposite = testFermat composites
+
+testFermat :: [Integer] -> IO Integer
+testFermat (x:xs) = do
+					a <- primeF 50 x
+					if a  == True then return x
+					else testFermat xs
+								
+--k = 1 gives 4, k = 2 gives 4, k = 3 gives	4
+--increasing k increases the run time, but also gives a higher chance of a returned value to be an
+--actual prime.		
+
+--exercise 5, for some reason some carmichael numbers return false with the primeF test. I think something 
+--broke :o 
+
+--exercise 6, can't find anything ...
+testMRCar ::IO Integer
+testMRCar = testMR carmichael
+
+testMR :: [Integer] -> IO Integer
+testMR (x:xs) = do
+					a <- primeMR 5 x
+					if a  == True then return x
+					else testMR xs			
+								
+--exercise 7, 30 min								
+findMersPrime :: Int -> IO [Integer]
+findMersPrime n = do
+				filterM (primeMR 5) $ take n mersenne
+				where mersenne = map (\p -> 2^p - 1) primes
+				
+--All the results found were mersenne primes, I didn't go on the long because my pc couldn't handle it after a while
+
+				

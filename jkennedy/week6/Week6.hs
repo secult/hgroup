@@ -66,17 +66,25 @@ fct_gcd a b =
 expM ::  Integer -> Integer -> Integer -> Integer
 expM x y = rem (x^y)
 
-exM :: Integer -> Integer -> Integer -> Integer
-exM x exp modulo = rem (product (map (\y -> rem y modulo) powers)) modulo
-				where powers = powersOfInt x exp
+-- exM :: Integer -> Integer -> Integer -> Integer
+-- exM x exp modulo = rem (product (map (\y -> rem y modulo) powers)) modulo
+				-- where powers = powersOfInt x exp
 
-largestPower :: Integer -> [Integer]
-largestPower 0 = []
-largestPower exp = largest : largestPower (exp - largest)
-				where largest = last [2^x | x <- [0..exp], 2^x <= exp]
+-- largestPower :: Integer -> [Integer]
+-- largestPower 0 = []
+-- largestPower exp = largest : largestPower (exp - largest)
+				-- where largest = last [2^x | x <- [0..exp], 2^x <= exp]
 				
-powersOfInt :: Integer -> Integer -> [Integer]
-powersOfInt x exp = [x^y | y <- [2^z | z <- [0..exp]], elem y (largestPower exp)]
+-- powersOfInt :: Integer -> Integer -> [Integer]
+-- powersOfInt x exp = [x^y | y <- [2^z | z <- [0..exp]], elem y (largestPower exp)]
+
+powm :: Integer -> Integer -> Integer -> Integer -> Integer
+powm b 0 m r = r
+powm b e m r | e `mod` 2 == 1 = powm (b * b `mod` m) (e `div` 2) m (r * b `mod` m)
+powm b e m r = powm (b * b `mod` m) (e `div` 2) m r
+
+exM :: Integer -> Integer -> Integer -> Integer
+exM x exp modulo = powm x exp modulo 1
 
 prime_test_F :: Integer -> IO Bool
 prime_test_F n = do 
