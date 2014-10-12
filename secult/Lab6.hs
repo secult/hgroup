@@ -66,6 +66,7 @@ compareTime a b c = do
         print d2
 
         return ((diffUTCTime t1 t2) < (diffUTCTime t3 t4))
+--in comparisson,with 10^8 ^10^7 mod 10^3 number  it takes roughly no time against 2s
 
 --exercise 3
 --taken from timon, spent too much time on it, day or so
@@ -100,20 +101,19 @@ showFalsePositives :: [(Integer,IO Bool)] -> IO ()
 showFalsePositives ((i,x):xs) = do
                 s<-x
                 if s then do
-                    print ("False positive",i)
+                    putStrLn $"False positive: "++ (show i)
                     
                 else do
                     return ()
                 showFalsePositives xs
 
                 
-testFalsePositiveComposite k = do
+testFalsePositivesFComposites k = do
     let c = testPrimeF k composites
     showFalsePositives c
--- Fermat’s Little Theorem is utilized by primeF
--- as "k" get higher, more random numbers go through exponentiation
+-- as "k" get higher, more random numbers go through
 -- as test repeats k times
---i am at 556115 now with k=5, 488647 with k=10
+
  --exercise 5
  --1h
 carmichael :: [Integer]
@@ -123,25 +123,28 @@ carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) |
     isPrime (12*k+1),
     isPrime (18*k+1) ]
 
-testFalsePositiveCarmichael k = do
+testFalsePositivesFCarmichael k = do
     let c = testPrimeF k carmichael
     showFalsePositives c
---found only 2098397876980204801
+{-
+Much bigger problem, because the random numbers are not diverse enough
+to got the few numbers that carmichael numbers consists of.
+Need to get k numbers cca 1000 or so to significantly reduce the amount
+ of false positives
+-}
 --exercise 6
 --1h
 testPrimeMR :: Int -> [Integer] -> [(Integer,IO Bool)]
 testPrimeMR k (x:xs) = (x,(primeMR k x)):testPrimeMR k xs
 
-testFalsePositiveMRcarmichael k = do
+testFalsePositivesMRCarmichael k = do
     let c = testPrimeMR k carmichael
     showFalsePositives c
 
-testFalsePositiveMRcomposites k = do
+testFalsePositivesMRComposites k = do
     let c = testPrimeMR k composites
     showFalsePositives c
---i can see that from k=2 miller -rabin check is more accurate and 
---has less false positives, but only in large numbers
---
+--miller -rabin check is more accurate and faster
 
 --exercise 7
 --1h but it has wierd results
@@ -149,13 +152,14 @@ mersenneCheck :: Integer -> IO Bool
 mersenneCheck x = do
                 a<- primeMR 3 x
                 b<- (primeMR 3 (2^x-1))
-                let c=isPrime x
-                let d=isPrime (2^x-1)
-                e<- primeF 3 x
-                f<- (primeF 3 ((2^x)-1))
-                when (a && b) (print ("MP found "++ (show x)))
-                when (e && f) (print ("F found "++ (show x)))
-                if c&&d 
+                --let c=isPrime x
+                --let d=isPrime (2^x-1)
+                --e<- primeF 3 x
+                --f<- (primeF 3 ((2^x)-1))
+                --when (a && b) (print ("MP found "++ (show x)))
+                --when (e && f) (print ("F found "++ (show x)))
+                --when (c && d) (print ("found "++ (show x)))
+                if a&&b 
                 then return True
                 else return False
 
@@ -168,7 +172,7 @@ showMersennes :: [(Integer,IO Bool)] -> IO ()
 showMersennes   ((i,x):xs) = do
                 s<-x
                 if s then do
-                    print ("Found mersenne`s prime! 2^"++show i++"-1")
+                    putStrLn ("Found mersenne`s prime! 2^"++show i++"-1")
                     return ()
                 else do
                     return ()
@@ -177,8 +181,7 @@ showMersennes   ((i,x):xs) = do
                 
                 showMersennes xs
 
-main = do
+main start= do
     let c = mersenneSearch [2..]
     showMersennes c
-    --showIOList c
     return ()
