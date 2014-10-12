@@ -66,15 +66,15 @@ fct_gcd a b =
 expM ::  Integer -> Integer -> Integer -> Integer
 expM x y = rem (x^y)
 
+
 exM :: Integer -> Integer -> Integer -> Integer
 exM _ _ 0 = error "division by zero"
-
-exM x 0 m = 1
+exM x 0 m = (x^0) `mod` m 
 exM x 1 m = x `mod` m
-exM x y m | (y `mod` 2) ==0 = ((exM x (y `div` 2) m) * x)^2 `mod` m
+exM x y m | (y<0) = error "negative exponent"
+exM x y m | (y `mod` 2) ==0 = (exM x (y `div` 2) m)^2 `mod` m
            | otherwise = (exM x (y-1) m) * x `mod` m
-
-
+           
 prime_test_F :: Integer -> IO Bool
 prime_test_F n = do
    a <- randomRIO (1, n-1) :: IO Integer
