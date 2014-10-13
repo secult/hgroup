@@ -67,10 +67,16 @@ expM ::  Integer -> Integer -> Integer -> Integer
 expM x y = rem (x^y)
 
 exM :: Integer -> Integer -> Integer -> Integer
-exM x y m | y > 1       = (foldl (\acc v -> acc^2 `mod` m) x (take steps [1..]) * exM x (y-(2^steps)) m) `mod` m
+exM x y m = myexM x y m {-| y > 1       = (foldl (\acc v -> acc^2 `mod` m) x (take steps [1..]) * exM x (y-(2^steps)) m) `mod` m
                | otherwise = x^y `mod` m
-                                   where steps = truncate $ logBase (fromIntegral 2) (fromIntegral y)
+                                   where steps = truncate $ logBase (fromIntegral 2) (fromIntegral y)-}
 
+myexM :: Integer -> Integer -> Integer -> Integer
+myexM _ 0 _ = 1
+myexM x y m | y `rem` 2 == 0 = (myexM x (y `div` 2) m)^2 `rem` m -- utilize that x^4 == (x^2)^2
+            | otherwise      = multM (myexM x (y-1) m) x m                                   
+                                   
+                                   
 prime_test_F :: Integer -> IO Bool
 prime_test_F n = do 
    a <- randomRIO (1, n-1) :: IO Integer

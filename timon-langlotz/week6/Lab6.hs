@@ -66,6 +66,15 @@ sieve2 list@(n:ns) (p:ps) = (takeWhile (<p) list) ++
                                 then sieve2 ns ps
                                 else sieve2 (dropWhile (<=p) list) ps
 
+{-
+composites' :: (Integer,Integer) -> [Integer]
+composites' (lo,hi) = takeDiff [lo..hi] primes hi ++ composites' (hi,2*hi)
+
+takeDiff :: [Integer] -> [Integer] -> Integer -> [Integer]
+takeDiff nums primes idx = takeWhile (< cnt) nums \\ takeWhile (< cnt) primes
+                                         where cnt = primes !! idx
+-}
+
 -- Exercise 4 + 5
 -- carmichael test: testFalsePrime #ofSteps carmichael
 testFalsePrime :: Int -> [Integer] -> IO ()
@@ -116,8 +125,9 @@ For [1..5] steps I could find 294409 to be a false positive in the primeMR test 
 -- Exercise 7
 --mersennePrime :: IO Integer
 mersennePrime = do
-                num <- getRandomInt 20
+                num <- getRandomInt 200
                 let p = primes !! num
+                --print p
                 let newP = (2^p) - 1
                 isPrime <- primeMR 5 newP
                 if (isPrime) then
@@ -196,23 +206,3 @@ intToBin n | n `mod` 2 == 1 = intToBin (n `div` 2) ++ [1]
 binToString :: [Int] -> String
 binToString [] = ""
 binToString xs = (chr $ fromIntegral $ binToInt $ take 8 xs) : binToString (drop 8 xs)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
