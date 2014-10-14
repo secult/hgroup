@@ -3,7 +3,6 @@
 import Data.List
 import System.Random
 
-
 {---------------------------------------------------------
  
  Extended functions:
@@ -32,7 +31,7 @@ nrcSolvedSample = do
                    else showNode $ head x
 
 -- Make this true to use nrc sudokus
-nrcsudoku = True
+nrcsudoku = False
 
 -- the additional blocks in an nrc sudoku
 nrcBlocks :: [[Int]]

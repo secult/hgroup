@@ -63,35 +63,34 @@ fct_gcd a b =
        (s,t) = fct_gcd b r 
      in (t, s - q*t)
 
-expM ::  Integer -> Integer -> Integer -> Integer
-expM x y = rem (x^y)
+--expM ::  Integer -> Integer -> Integer -> Integer
+--expM x y = rem (x^y)
 
+expM :: Integer -> Integer -> Integer -> Integer
+expM _ 0 _ = 1
+expM x y m | y `rem` 2 == 0 = (expM x (y `div` 2) m)^2 `mod` m -- utilize that x^4 = (x^2)^2
+           | otherwise      = multM (expM x (y-1)       m) x m -- utilize that x^3 = x*x^2
+      
 exM :: Integer -> Integer -> Integer -> Integer
-exM x y m = myexM x y m {-| y > 1       = (foldl (\acc v -> acc^2 `mod` m) x (take steps [1..]) * exM x (y-(2^steps)) m) `mod` m
-               | otherwise = x^y `mod` m
-                                   where steps = truncate $ logBase (fromIntegral 2) (fromIntegral y)-}
+exM = expM
 
-myexM :: Integer -> Integer -> Integer -> Integer
-myexM _ 0 _ = 1
-myexM x y m | y `rem` 2 == 0 = (myexM x (y `div` 2) m)^2 `rem` m -- utilize that x^4 == (x^2)^2
-            | otherwise      = multM (myexM x (y-1) m) x m                                   
-                                   
-                                   
+--bug?: randomRIO n-2 should be used, since haskell uses incluse right bounds, as Vadim explained to us in our feedback from week2 :)
 prime_test_F :: Integer -> IO Bool
 prime_test_F n = do 
-   a <- randomRIO (1, n-1) :: IO Integer
+   a <- randomRIO (2, n-2) :: IO Integer
    return (exM a (n-1) n == 1)
-
+  
 primeF :: Int -> Integer -> IO Bool
 primeF _ 2 = return True
 primeF 0 _ = return True
 primeF k n = do
 --   a <- randomRIO (1, n-1) :: IO Integer
-   a <- randomRIO (1, n-2) :: IO Integer
+   a <- randomRIO (2, n-2) :: IO Integer
    if (exM a (n-1) n /= 1) 
       then return False 
       else primeF (k-1) n
-
+      
+------------------------------------------      
 decomp :: Integer -> (Integer,Integer)
 decomp n = decomp' (0,n) where
   decomp' = until (odd.snd) (\ (m,n) -> (m+1,div n 2))

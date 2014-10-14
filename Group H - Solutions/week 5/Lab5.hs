@@ -81,7 +81,6 @@ getStates s xs = map (\sud -> (sud,constraints sud)) sudokus
              where sudokus = foldr (\a b -> (eraseS s a) : b) [] xs                      
 
 --exercise 3, 3 hours
-
 genSudokuEmptyBlocks :: IO()
 genSudokuEmptyBlocks = do
             [(s,c)] <- rsolveNs [emptyN]
@@ -199,31 +198,60 @@ There could still be a possibility that a proper Sudoku with 4 empty blocks exis
 --}
 	 
 -- Exercise 6
--- 1 -> easy, 10 -> hard
-type Difficulty = Float
+{-- 
+    This sudoku solver was based on the simple solver in the Pelánek paper mentioned in the exercise. 
+    Although it is simplified due to shortage of time.
+    
+    it works like this:
+    1 given a solution x, generate problem y from it
+    2 try to solve problem y using two simple rules:
+        - Naked value
+        - Hidden single
+    3 solved? great, the difficulty is 0
+    4 stuck? get a hint, increase difficulty in step 3 by 1 and repeat from step 2
+    
+    
+--}
+
+type Difficulty = Int
+
+doHumanSolve :: IO Difficulty
+doHumanSolve = do 
+                let sol = fst $ head $ solveNs $ initNode example2
+                let prob = head $ initNode example2
+                return $ humanSolve sol prob
 
 humanSolve :: Sudoku -> Node -> Difficulty
-humanSolve sol prob | (sud2grid sol) == (sud2grid $ fst prob) = 1
+humanSolve sol prob | (sud2grid sol) == (sud2grid $ fst prob) = 0
                     | (sud2grid $ fst prob) /= (sud2grid $ fst logicSol) = humanSolve sol logicSol
-                    | otherwise = refute sol prob
+                    | otherwise = 1 + humanSolve sol (addEasiestCoordinate sol prob)
                         where logicSol = logicSolve prob
-                    
+                        
+addEasiestCoordinate :: Sudoku -> Node -> Node
+addEasiestCoordinate sol (sud,con) = (easier, constraints easier)
+                                where
+                                    easier = extend sud ((x,y), sol (x,y)) 
+                                    (x,y,_) = head con
                     
 logicSolve :: Node -> Node
-logicSolve (sud,con) = undefined --any map  (\ (sud',con')
+logicSolve (sud,con) = (sud', constraints sud) 
+                     where sud' = hiddenSingle $ (nakedSingle con sud) 
 
+-- Naked Single -----------------------------------------------------  
 nakedSingle :: [Constraint] -> Sudoku -> Sudoku
 nakedSingle cs sud = foldr (\ (row,col,vs) sud' -> if (length vs == 1) 
                                                 then extend sud ((row,col),head vs)
                                                 else sud') sud cs
                                                 
+---------------------------------------------------------------------
+
+-- Hidden Single ----------------------------------------------------                                               
 hiddenSingle :: Sudoku -> Sudoku
-hiddenSingle sud = undefined --foldr (\ [row] sud 
+hiddenSingle = hiddenSingleColumn.hiddenSingleRow.hiddenSingleSubgrid 
 
-
+-- Column
 hiddenSingleColumn :: Sudoku -> Sudoku
 hiddenSingleColumn sud = foldr extSingleCol sud positions
-
 
 extSingleCol :: Column -> Sudoku -> Sudoku
 extSingleCol col sud | length value == 1 = extend sud (head (getEmptyInColumn sud col), head value)
@@ -233,36 +261,58 @@ extSingleCol col sud | length value == 1 = extend sud (head (getEmptyInColumn su
 getEmptyInColumn :: Sudoku -> Column -> [(Row,Column)]
 getEmptyInColumn sud col = filter (\ (r,c) -> c == col) (openPositions sud)
 
+-- Row
 hiddenSingleRow :: Sudoku -> Sudoku
-hiddenSingleRow = undefined
+hiddenSingleRow sud = foldr extSingleRow sud positions
 
-getEmptyInRow :: Sudoku -> Row -> [Column]
-getEmptyInRow sud row = undefined -- filter (\ (r,c) -> r == row) (openPositions sud)
+extSingleRow :: Row -> Sudoku -> Sudoku
+extSingleRow row sud | length value == 1 = extend sud (head (getEmptyInRow sud row), head value)
+                     | otherwise = sud
+                            where value = freeInRow sud row
+                            
+getEmptyInRow :: Sudoku -> Row -> [(Row,Column)]
+getEmptyInRow sud row = filter (\ (r,c) -> r == row) (openPositions sud)
 
+-- SubGrid
 hiddenSingleSubgrid :: Sudoku -> Sudoku
-hiddenSingleSubgrid = undefined
+hiddenSingleSubgrid sud = foldr extSingleSubgrid sud eachSub
 
-getEmptyInSubgrid :: Sudoku -> (Row,Column) -> [Row]
-getEmptyInSubgrid sud sg = undefined --filter (undefined) (openPositions sud)
+extSingleSubgrid :: (Row,Column) -> Sudoku -> Sudoku 
+extSingleSubgrid sg sud | length value == 1 = extend sud (head (getEmptyInSubgrid sud sg), head value)
+                        | otherwise = sud
+                            where value = freeInSubgrid sud sg
+
+getEmptyInSubgrid :: Sudoku -> (Row,Column) -> [(Row,Column)]
+getEmptyInSubgrid sud sg = filter (\coord -> sud coord == 0) (subGridCoords sg)
 
 eachSub :: [(Row,Column)]
 eachSub = [(a,b) | a <- [2,5,8], b <- [2,5,8]]
 
-refute :: Sudoku -> Node -> Difficulty
-refute sud n = undefined
+subGridCoords :: (Row,Column) -> [(Row,Column)]
+subGridCoords (r,c) = [ (r',c') | r' <- bl r, c' <- bl c]
 
-bruteSudoku :: Difficulty -> IO Sudoku
-bruteSudoku = undefined
+------------------------------------------------------------------------------
 
-example1' :: Grid
-example1' = [[5,3,0,0,7,0,0,0,0],
-             [6,0,0,1,9,5,0,0,0],
-             [1,9,8,0,0,0,0,6,0],
-             [8,0,0,0,6,0,0,0,3],
-             [4,0,0,8,0,3,0,0,1],
-             [7,0,0,0,2,0,0,0,6],
-             [9,6,0,0,0,0,2,8,0],
-             [2,0,0,4,1,9,0,0,5],
-             [0,0,0,0,8,0,0,7,9]]
+generateEasySudoku :: IO ()
+generateEasySudoku = do
+                      x <- (bruteSudoku (< 35))
+                      showSudoku x
 
+generateHardSudoku :: IO ()
+generateHardSudoku =  do
+                      x <- (bruteSudoku (> 38))
+                      showSudoku x
 
+bruteSudoku :: (Difficulty -> Bool) -> IO Sudoku
+bruteSudoku diff = do 
+                    sol  <- genRandomSudoku
+                    prob <- genProblem sol
+                    -- debug: showNode sol
+                    let difficulty = humanSolve (fst sol) prob
+                    -- debug: putStrLn $ show difficulty
+                    if diff difficulty 
+                    then return $ fst prob
+                    else bruteSudoku diff
+
+             
+             
